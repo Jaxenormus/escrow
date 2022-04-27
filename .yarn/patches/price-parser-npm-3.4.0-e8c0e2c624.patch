@@ -1,0 +1,19 @@
+diff --git a/index.d.ts b/index.d.ts
+index 0263b51161adf7b3b857531c28acce14a366951c..79fe1bcb91967ebd6ad3f3fb099a91ab85e8c330 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -1,6 +1,14 @@
+ export interface Price {
+     value: number;
++    floatValue: number;
++    symbol: string;
+     currencyCode: string;
++    currency: {
++      code: string;
++      symbols: string[];
++      name: string;
++      exponent: number;
++    };
+ }
+ 
+ export interface PriceParseOptions {

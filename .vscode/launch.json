@@ -1,0 +1,19 @@
+{
+  "configurations": [
+    {
+      "name": "main",
+      "request": "launch",
+      "runtimeArgs": [
+        "ts-node-dev",
+        "-r",
+        "tsconfig-paths/register",
+        "-T",
+        "src/index.ts"
+      ],
+      "runtimeExecutable": "yarn",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node",
+      "outputCapture": "std"
+    }
+  ]
+}
