@@ -1,5 +1,6 @@
-import { ChatInputCommand, Command } from '@sapphire/framework';
-import { Message } from 'discord.js';
+import type { ChatInputCommand} from '@sapphire/framework';
+import { Command } from '@sapphire/framework';
+import type { Message } from 'discord.js';
 
 export default class PingCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {
@@ -16,7 +17,7 @@ export default class PingCommand extends Command {
     );
   }
 
-  public async chatInputRun(interaction: Command.ChatInputInteraction) {
+  public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     return interaction.reply('Pong');
   }
 

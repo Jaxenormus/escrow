@@ -1,40 +1,53 @@
-import { ChatInputCommand, Command } from '@sapphire/framework';
+import type { ChatInputCommand } from "@sapphire/framework";
+import { Command, container } from "@sapphire/framework";
+import { Effect, Either } from "effect";
 
-import { EXPANDED_TRADE_TYPES, TRADE_TYPES } from '@/context';
-import newBotAddress from '@/helpers/crypto/utils/newBotAddress';
+import { TradeMediums } from "@/src/config";
+import { InteractionService } from "@/src/helpers/services/Interaction";
 
-export default class FundCommand extends Command {
+export default class NewAddressCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {
     super(context, {
       ...options,
-      name: 'new-address',
-      description: 'Creates a new temp address',
-      preconditions: ['DeveloperOnly'],
+      name: "new-address",
+      description: "Creates a new address for the specified coin",
+      preconditions: ["DeveloperOnly"],
     });
   }
 
   public override registerApplicationCommands(registry: ChatInputCommand.Registry) {
-    registry.registerChatInputCommand(builder =>
+    registry.registerChatInputCommand((builder) =>
       builder
         .setName(this.name)
         .setDescription(this.description)
-        .addStringOption(option =>
+        .addStringOption((option) =>
           option
-            .setName('coin')
-            .setDescription('The coin of the address')
+            .setName("coin")
+            .setDescription("The coin of the address")
             .setRequired(true)
             .addChoices(
-              { name: EXPANDED_TRADE_TYPES[TRADE_TYPES.BITCOIN], value: TRADE_TYPES.BITCOIN },
-              { name: EXPANDED_TRADE_TYPES[TRADE_TYPES.ETHEREUM], value: TRADE_TYPES.ETHEREUM },
-              { name: EXPANDED_TRADE_TYPES[TRADE_TYPES.LITECOIN], value: TRADE_TYPES.LITECOIN }
+              { name: "Bitcoin", value: TradeMediums.Bitcoin },
+              { name: "Ethereum", value: TradeMediums.Ethereum },
+              { name: "Litecoin", value: TradeMediums.Litecoin }
             )
         )
     );
   }
 
-  public async chatInputRun(interaction: Command.ChatInputInteraction) {
-    const coin = interaction.options.getString('coin', true) as TRADE_TYPES;
-    const address = await newBotAddress(coin);
-    interaction.reply(address.address);
+  public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
+    await interaction.deferReply();
+    const coin = interaction.options.getString("coin", true) as TradeMediums;
+    await Effect.runPromise(
+      Effect.gen(function* (_) {
+        const responseEither = yield* _(Effect.either(container.api.crypto.newBotAddress(coin)));
+        if (Either.isRight(responseEither)) {
+          const response = responseEither.right;
+          return yield* _(InteractionService.followUp(interaction, { content: response.data }));
+        } else {
+          const error = responseEither.left;
+          return yield* _(InteractionService.followUp(interaction, { content: error.message }));
+        }
+      })
+    );
   }
 }

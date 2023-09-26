@@ -1,19 +1,15 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
-      "name": "main",
-      "request": "launch",
-      "runtimeArgs": [
-        "ts-node-dev",
-        "-r",
-        "tsconfig-paths/register",
-        "-T",
-        "src/index.ts"
-      ],
-      "runtimeExecutable": "yarn",
-      "skipFiles": ["<node_internals>/**"],
+      "name": "TS Node",
       "type": "node",
-      "outputCapture": "std"
+      "request": "launch",
+      "runtimeExecutable": "sh",
+      "program": "node_modules/.bin/ts-node",
+      "args": ["-r", "tsconfig-paths/register", "-T", "src/index.ts"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnFirstSessionStart"
     }
   ]
 }

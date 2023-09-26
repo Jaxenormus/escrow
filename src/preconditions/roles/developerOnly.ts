@@ -1,11 +1,12 @@
-import { AllFlowsPrecondition, Piece } from '@sapphire/framework';
-import type { CommandInteraction, ContextMenuInteraction, Message } from 'discord.js';
+import type { Piece } from "@sapphire/framework";
+import { AllFlowsPrecondition } from "@sapphire/framework";
+import type { CommandInteraction, ContextMenuCommandInteraction, Message } from "discord.js";
 
 export default class DeveloperOnlyPrecondition extends AllFlowsPrecondition {
   public constructor(context: Piece.Context, options: AllFlowsPrecondition.Options) {
     super(context, {
       ...options,
-      name: 'DeveloperOnly',
+      name: "DeveloperOnly",
     });
   }
 
@@ -17,17 +18,17 @@ export default class DeveloperOnlyPrecondition extends AllFlowsPrecondition {
     return this.checkDeveloper(interaction.user.id);
   }
 
-  public override async contextMenuRun(interaction: ContextMenuInteraction) {
+  public override async contextMenuRun(interaction: ContextMenuCommandInteraction) {
     return this.checkDeveloper(interaction.user.id);
   }
 
   public async checkDeveloper(id: string) {
     return DeveloperOnlyPrecondition.isDeveloper(id)
       ? this.ok()
-      : this.error({ message: 'You do not have permission to use this command.' });
+      : this.error({ message: "You do not have permission to use this command." });
   }
 
   static isDeveloper(id: string) {
-    return ['1137545470625976481'].includes(id);
+    return ["1138627371965100063"].includes(id);
   }
 }

@@ -1,21 +1,14 @@
-import '@sentry/tracing';
+import * as dotenv from "dotenv";
+import path from "path";
 
-import { container } from '@sapphire/framework';
-import * as dotenv from 'dotenv';
-import path from 'path';
+import { BotClient } from "@/src/client";
 
-import CustomClient from './client';
+const client = new BotClient();
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.resolve('.env') });
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: path.resolve(".env") });
 }
 
-const client = new CustomClient();
+client.login(process.env.BOT_TOKEN ?? "");
 
-client.login(process.env.BOT_TOKEN);
-
-process.on('SIGTERM', () => process.exit());
-
-process.on('unhandledRejection', (error: Error) => {
-  container.sentry.handleException(error);
-});
+process.on("SIGTERM", () => process.exit());

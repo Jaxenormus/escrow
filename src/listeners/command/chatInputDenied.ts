@@ -1,10 +1,11 @@
-import { ChatInputCommandDeniedPayload, Listener, UserError } from '@sapphire/framework';
+import type { ChatInputCommandDeniedPayload, UserError } from "@sapphire/framework";
+import { Listener } from "@sapphire/framework";
 
 export default class ChatInputCommandDeniedListener extends Listener {
   public constructor(context: Listener.Context, options: Listener.Options) {
     super(context, {
       ...options,
-      event: 'chatInputCommandDenied',
+      event: "chatInputCommandDenied",
     });
   }
 

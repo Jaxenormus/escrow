@@ -1,6 +1,17 @@
+/** @type {import("prettier").Config} */
 module.exports = {
-    ...require('prettier-airbnb-config'),
-    bracketSpacing: true,
-    singleQuote: true,
-  };
-  
+  bracketSpacing: true,
+  bracketSameLine: true,
+  singleQuote: false,
+  jsxSingleQuote: false,
+  trailingComma: "es5",
+  semi: true,
+  printWidth: 120,
+  arrowParens: "always",
+  importOrder: [
+    "^@/src/(.*)$",
+    "^[./]",
+  ],
+  importOrderSeparation: true,
+  plugins: ["@trivago/prettier-plugin-sort-imports"],
+};

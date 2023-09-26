@@ -1,101 +1,115 @@
-import { container, Listener } from '@sapphire/framework';
-import { Formatters, GuildChannel } from 'discord.js';
-import { isNil, lowerCase, toLower } from 'lodash';
+import { Listener } from "@sapphire/framework";
+import type { GuildChannel } from "discord.js";
+import { UserSelectMenuBuilder } from "discord.js";
+import { ActionRowBuilder, EmbedBuilder, codeBlock, userMention } from "discord.js";
+import { Effect, Either } from "effect";
+import { isNil, toLower, toString } from "lodash";
+import { startCase } from "lodash";
 
-import Embed from '@/classes/Embed';
-import { REPLY_DELETE_TIMEOUT, TRADE_TYPES } from '@/context';
-import handleMessage from '@/helpers/core/handleMessage';
-import handleCoinSelect from '@/helpers/crypto/handleCoinSelection';
-import handleCrypto from '@/helpers/crypto/handleCryptoDeal';
-import handleGameDeal from '@/helpers/game/handleGameDeal';
-import handleLimiteds from '@/helpers/limiteds/handleLimitedDeal';
-import handleInactivity from '@/helpers/shared/handlers/handleInactivity';
+import { TradeMediums } from "@/src/config";
+import { EmbedColors, Interactions } from "@/src/config";
+import { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
+import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
+import handleCrypto from "@/src/handlers/crypto/handleCryptoDeal";
+import { listenForInteractions } from "@/src/helpers/listenForInteractions";
+import { ChannelService } from "@/src/helpers/services/Channel";
+import { MemberService } from "@/src/helpers/services/Member";
+import { MessageService } from "@/src/helpers/services/Message";
 
 export default class ChannelCreateListener extends Listener {
   public constructor(context: Listener.Context, options: Listener.Options) {
     super(context, {
       ...options,
-      event: 'channelCreate',
+      event: "channelCreate",
     });
   }
 
   public async run(channel: GuildChannel) {
-    try {
-      const matches = channel.name.match(/^(.+)-([0-9]+)$/);
-      if (!isNil(matches) && channel.isText()) {
-        const type = TRADE_TYPES[matches[1].replace('-', '_').toUpperCase()];
-        if (isNil(type)) return;
-        handleInactivity(channel);
-        await channel.send({
+    const matches = channel.name.match(/^(.+)-([0-9]+)$/);
+    if (!isNil(matches) && channel.isTextBased()) {
+      const medium = TradeMediums[startCase(matches[1].replace("-", "_")) as unknown as keyof typeof TradeMediums];
+      if (medium) {
+        const prompt = await channel.send({
           embeds: [
-            new Embed({
-              title: 'Escrow Automated Middleman',
-              description: `Please enter the tag  or Developer ID of the user you are dealing with.\n\ne.g User#0000 or 12345678901234567`,
+            new EmbedBuilder({
+              title: "Escrow Automated Middleman",
+              description: `Please select the other participant in this ${toLower(medium)} trade below.`,
+              color: EmbedColors.Main,
             }),
           ],
-        });
-        await handleMessage(channel, async (response, end) => {
-          if (!response.author.bot) {
-            const idTest = /^[0-9]{17,}$/.test(response.content);
-            const tagTest = /^.+#[0-9]{4}$/gi.test(response.content);
-            if (idTest || tagTest) {
-              try {
-                let id = null;
-                if (idTest) {
-                  const member = await response.guild.members.fetch(response.content);
-                  id = member.id;
-                } else {
-                  const user = (await response.guild.members.fetch()).find(
-                    member => member.user.tag === response.content
-                  );
-                  if (isNil(user)) throw new Error('User not found.');
-                  id = user.id;
-                }
-                if (!isNil(id)) {
-                  await response.channel.send(`$add ${id}`);
-                  await response.channel.send(
-                    `${Formatters.userMention(id)} You have been added to a ${toLower(
-                      type
-                    )} ticket by ${Formatters.userMention(response.author.id)}`
-                  );
-                }
-                end();
-              } catch (e) {
-                const msg = await response.reply('The user is not in the server.');
-                setTimeout(() => msg.delete(), REPLY_DELETE_TIMEOUT);
-              }
-            } else {
-              const msg = await response.reply('Please enter a valid user ID.');
-              setTimeout(() => msg.delete(), REPLY_DELETE_TIMEOUT);
-            }
-          }
+          components: [
+            new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
+              new UserSelectMenuBuilder()
+                .setCustomId(Interactions.TicketParticipantUserSelectMenu)
+                .setPlaceholder("Select other participant")
+                .setMaxValues(1)
+            ),
+          ],
         });
 
-        // eslint-disable-next-line default-case
-        switch (type) {
-          case TRADE_TYPES.LIMITEDS: {
-            await handleLimiteds(channel);
-            break;
-          }
-          case TRADE_TYPES.ADOPT_ME:
-          case TRADE_TYPES.HOOD_MODDED: {
-            await handleGameDeal(channel, type);
-            break;
-          }
-          case TRADE_TYPES.CRYPTO: {
-            const selection = await handleCoinSelect(
-              channel,
-              'What coin is being held?',
-              'Please select the coin you would like to hold during the exchange.'
-            );
-            await channel.send(`$rename ${lowerCase(selection)}-${matches[2]}`);
-            await handleCrypto(channel, selection as any);
+        await Effect.runPromise(
+          listenForInteractions(prompt, (interaction, end) =>
+            Effect.gen(function* (_) {
+              if (
+                interaction.customId === Interactions.TicketParticipantUserSelectMenu &&
+                interaction.isUserSelectMenu()
+              ) {
+                const member = yield* _(MemberService.fetch(channel.guild, interaction.values[0]));
+                yield* _(
+                  ChannelService.overridePermissions(channel, member.id, {
+                    ViewChannel: true,
+                    SendMessages: true,
+                    ReadMessageHistory: true,
+                  })
+                );
+                yield* _(MessageService.send(channel, `${userMention(member.id)} has been added to this ticket.`));
+                yield* _(Effect.sync(() => end()));
+              }
+            })
+          )
+        );
+
+        switch (medium) {
+          case TradeMediums.Bitcoin:
+          case TradeMediums.Ethereum:
+          case TradeMediums.Litecoin: {
+            // Its not really important if this fails, so we don't need to handle the result
+            const response = await Effect.runPromise(handleCrypto(channel, medium));
+            if (Either.isLeft(response)) {
+              const error = response.left;
+              const isPrematureTerminationError =
+                error instanceof PrematureTerminationError && error._tag === "PrematureTerminationError";
+              if (!isPrematureTerminationError) {
+                if (error instanceof ExpectedExecutionError) {
+                  Effect.runPromiseExit(
+                    MessageService.send(channel, {
+                      embeds: [
+                        new EmbedBuilder()
+                          .setTitle(error.title)
+                          .setDescription(`${error.message}\n${codeBlock(toString(error.error))}`)
+                          .setColor(EmbedColors.Error),
+                      ],
+                    })
+                  ).then(() => Effect.interrupt);
+                } else {
+                  Effect.runPromiseExit(
+                    MessageService.send(channel, {
+                      content: userMention("1138627371965100063"),
+                      embeds: [
+                        new EmbedBuilder()
+                          .setTitle("An unhandled error occurred")
+                          .setDescription(`An unhandled error occurred.\n${codeBlock(toString(error))}`)
+                          .setColor(EmbedColors.Error),
+                      ],
+                    })
+                  ).then(() => Effect.interrupt);
+                }
+              }
+            }
             break;
           }
         }
       }
-    } catch (e) {
-      container.sentry.handleException(e);
     }
   }
 }

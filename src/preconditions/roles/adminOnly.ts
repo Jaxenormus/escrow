@@ -1,11 +1,12 @@
-import { AllFlowsPrecondition, Piece } from '@sapphire/framework';
-import type { CommandInteraction, ContextMenuInteraction, Message } from 'discord.js';
+import type { Piece } from "@sapphire/framework";
+import { AllFlowsPrecondition } from "@sapphire/framework";
+import type { CommandInteraction, ContextMenuCommandInteraction, Message } from "discord.js";
 
 export default class AdminOnlyPrecondition extends AllFlowsPrecondition {
   public constructor(context: Piece.Context, options: AllFlowsPrecondition.Options) {
     super(context, {
       ...options,
-      name: 'AdminOnly',
+      name: "AdminOnly",
     });
   }
 
@@ -17,17 +18,17 @@ export default class AdminOnlyPrecondition extends AllFlowsPrecondition {
     return this.checkAdmin(interaction.user.id);
   }
 
-  public override async contextMenuRun(interaction: ContextMenuInteraction) {
+  public override async contextMenuRun(interaction: ContextMenuCommandInteraction) {
     return this.checkAdmin(interaction.user.id);
   }
 
   public async checkAdmin(id: string) {
     return AdminOnlyPrecondition.isAdmin(id)
       ? this.ok()
-      : this.error({ message: 'You do not have permission to use this command.' });
+      : this.error({ message: "You do not have permission to use this command." });
   }
 
   static isAdmin(id: string): boolean {
-    return ['978373060447051837', '1136480592175841421', '1137545470625976481'].includes(id);
+    return ["1138627371965100063"].includes(id);
   }
 }

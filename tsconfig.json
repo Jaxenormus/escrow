@@ -1,24 +1,15 @@
 {
   "compilerOptions": {
+    "target": "es2016",
     "module": "commonjs",
-    "target": "es2018",
-    "outDir": "build",
-    "resolveJsonModule": true,
-    "sourceMap": true,
-    "inlineSourceMap": false,
-    "inlineSources": true,
-    "incremental": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "typeRoots": [".d.ts", "./node_modules/@types"],
+    "strict": true,
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true,
+    "outDir": "build",
     "baseUrl": "./",
-    "sourceRoot": "./src",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "paths": { "@/*": ["*"] }
   },
-  "exclude": ["node_modules"],
-  "include": ["src/**/*", "mikro-orm.config.js", "index.d.ts"]
+  "exclude": ["./node_modules"],
+  "include": ["./src/**/*", "index.d.ts"]
 }

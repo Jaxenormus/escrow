@@ -1,8 +1,4 @@
-export type CryptoDealAmount = {
-  raw_crypto: number;
-  crypto: string;
-  raw_fiat: number;
-  fiat: string;
-};
-
-export type DealConfirmationVerdict = 'RESTART' | 'RETURN' | 'CANCEL' | 'RELEASE';
+declare module "satoshi-bitcoin" {
+  export function toBitcoin(satoshis: number | string): number;
+  export function toSatoshi(bitcoin: number | string): number;
+}
