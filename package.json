@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsnd --rs --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "swc ./src -d build && resolve-tspaths && recursive-copy src/assets build/assets",
-    "start": "node build/index.js",
+    "start": "prisma db push && node build/index.js",
     "lint": "eslint --ext .ts src --fix"
   },
   "prisma": {
