@@ -164,13 +164,13 @@ export class CryptoApi {
     });
   }
 
-  public newBotAddress(type: TradeMediums) {
+  public newBotAddress(medium: TradeMediums) {
     return Effect.tryPromise({
       try: () =>
-        this.createBlockCypherInstance(type).post<BlockCypherNewAddressResponse>(
+        this.createBlockCypherInstance(medium).post<BlockCypherNewAddressResponse>(
           "/addrs",
           {},
-          { params: { bech32: type === TradeMediums.Bitcoin } }
+          { params: { bech32: medium === TradeMediums.Bitcoin } }
         ),
       catch: (unknown) => {
         container.sentry.captureException(unknown);
@@ -186,7 +186,7 @@ export class CryptoApi {
           data: response.data.address,
           private: response.data.private,
           public: response.data.public,
-          recovery: type !== TradeMediums.Ethereum ? response.data.wif : response.data.private,
+          recovery: medium !== TradeMediums.Ethereum ? response.data.wif : response.data.private,
         })
       )
     );
@@ -247,9 +247,9 @@ export class CryptoApi {
     );
   }
 
-  public getHashInfo(type: TradeMediums, hash: string) {
+  public getHashInfo(medium: TradeMediums, hash: string) {
     return Effect.tryPromise({
-      try: () => this.createBlockCypherInstance(type).get<BlockCypherHashInfoResponse>(`/txs/${hash}`),
+      try: () => this.createBlockCypherInstance(medium).get<BlockCypherHashInfoResponse>(`/txs/${hash}`),
       catch: (unknown) => {
         container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
@@ -261,9 +261,9 @@ export class CryptoApi {
     });
   }
 
-  public getAddressInfo(type: TradeMediums, address: string) {
+  public getAddressInfo(medium: TradeMediums, address: string) {
     return Effect.tryPromise({
-      try: () => this.createBlockCypherInstance(type).get<BlockCypherHashInfoResponse>(`/addrs/${address}`),
+      try: () => this.createBlockCypherInstance(medium).get<BlockCypherHashInfoResponse>(`/addrs/${address}`),
       catch: (unknown) => {
         container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
@@ -275,24 +275,25 @@ export class CryptoApi {
     });
   }
 
-  public getFullAddressInfo(type: TradeMediums, address: string) {
-    return Effect.tryPromise({
-      try: () => this.createBlockCypherInstance(type).get<BlockCypherFullAddressInfoResponse>(`/addrs/${address}/full`),
-      catch: (unknown) => {
-        container.sentry.captureException(unknown);
-        if (unknown instanceof AxiosError) {
-          return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
-        } else {
-          return new BlockCypherApiError(unknown);
-        }
-      },
-    });
-  }
-
-  public faucet(type: TradeMediums, address: string, amount: string) {
+  public getFullAddressInfo(medium: TradeMediums, address: string) {
     return Effect.tryPromise({
       try: () =>
-        this.createBlockCypherInstance(type).post<BlockCypherFaucetResponse>("/faucet", {
+        this.createBlockCypherInstance(medium).get<BlockCypherFullAddressInfoResponse>(`/addrs/${address}/full`),
+      catch: (unknown) => {
+        container.sentry.captureException(unknown);
+        if (unknown instanceof AxiosError) {
+          return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
+        } else {
+          return new BlockCypherApiError(unknown);
+        }
+      },
+    });
+  }
+
+  public faucet(medium: TradeMediums, address: string, amount: string) {
+    return Effect.tryPromise({
+      try: () =>
+        this.createBlockCypherInstance(medium).post<BlockCypherFaucetResponse>("/faucet", {
           address,
           amount: parseInt(amount),
         }),
