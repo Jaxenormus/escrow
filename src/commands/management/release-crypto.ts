@@ -1,10 +1,11 @@
 import type { ChatInputCommand } from "@sapphire/framework";
-import { Command } from "@sapphire/framework";
+import { Command, container } from "@sapphire/framework";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, inlineCode } from "discord.js";
-import { Effect, Exit } from "effect";
+import { Effect, Either } from "effect";
 
 import { TradeMediums } from "@/src/config";
 import { findHashUrl } from "@/src/helpers/crypto/findHashUrl";
+import { InteractionService } from "@/src/helpers/services/Interaction";
 
 export default class ReleaseCryptoCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {
@@ -46,34 +47,35 @@ export default class ReleaseCryptoCommand extends Command {
       const medium = interaction.options.getString("coin", true) as TradeMediums;
       const from = interaction.options.getString("from", true);
       const to = interaction.options.getString("to", true);
-      const rawAddress = await Effect.runPromiseExit(this.container.db.findAddress({ id: from }));
-      return Exit.match(rawAddress, {
-        onSuccess: async (address) => {
+      return Effect.runPromiseExit(
+        Effect.gen(function* (_) {
+          const address = yield* _(container.db.findAddress({ data: from }));
           if (address) {
-            return Effect.match(this.container.api.crypto.releaseHeldCrypto(medium, address, to), {
-              onSuccess: async (hash) => {
-                await interaction.editReply({
-                  content: `Funds have been released from to ${inlineCode(to)}`,
+            const releaseEither = yield* _(Effect.either(container.api.crypto.releaseHeldCrypto(medium, address, to)));
+            if (Either.isRight(releaseEither)) {
+              yield* _(
+                InteractionService.followUp(interaction, {
+                  content: `${medium} have been released from ${inlineCode(address.data)} to ${inlineCode(to)}`,
                   components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                       new ButtonBuilder()
-                        .setURL(findHashUrl(medium, hash))
+                        .setURL(findHashUrl(medium, releaseEither.right))
                         .setLabel("View Transaction")
                         .setStyle(ButtonStyle.Link)
                     ),
                   ],
-                });
-              },
-              onFailure(error) {
-                return interaction.editReply({ content: error.message });
-              },
-            });
+                })
+              );
+            } else {
+              yield* _(
+                InteractionService.followUp(interaction, `Error releasing funds: ${releaseEither.left.message}`)
+              );
+            }
+          } else {
+            yield* _(InteractionService.followUp(interaction, `Address ${inlineCode(from)} not found in database`));
           }
-        },
-        onFailure: (cause) => {
-          return interaction.editReply({ content: cause.toString() });
-        },
-      });
+        })
+      );
     }
   }
 }

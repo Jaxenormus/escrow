@@ -48,7 +48,7 @@ export class DB {
     });
   }
 
-  public findAddress(where: Prisma.AddressWhereUniqueInput) {
+  public findAddress(where: Prisma.AddressWhereInput) {
     return Effect.tryPromise({
       try: () => this.prisma.address.findFirst({ where }),
       catch: (unknown) => {
