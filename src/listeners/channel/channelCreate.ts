@@ -13,6 +13,7 @@ import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
 import handleCrypto from "@/src/handlers/crypto/handleCryptoDeal";
 import { listenForInteractions } from "@/src/helpers/listenForInteractions";
 import { ChannelService } from "@/src/helpers/services/Channel";
+import { InteractionService } from "@/src/helpers/services/Interaction";
 import { MemberService } from "@/src/helpers/services/Member";
 import { MessageService } from "@/src/helpers/services/Message";
 
@@ -55,15 +56,30 @@ export default class ChannelCreateListener extends Listener {
                 interaction.isUserSelectMenu()
               ) {
                 const member = yield* _(MemberService.fetch(channel.guild, interaction.values[0]));
-                yield* _(
-                  ChannelService.overridePermissions(channel, member.id, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                  })
-                );
-                yield* _(MessageService.send(channel, `${userMention(member.id)} has been added to this ticket.`));
-                yield* _(Effect.sync(() => end()));
+                let errorMsg = "";
+
+                if (member.id === interaction.user.id) {
+                  errorMsg = "You cannot add yourself to a ticket. Please try again.";
+                } else if (member.user.bot) {
+                  errorMsg = "You cannot add a bot to a ticket. Please try again.";
+                }
+
+                if (errorMsg) {
+                  const reply = yield* _(InteractionService.followUp(interaction, errorMsg));
+                  yield* _(MessageService.delete(reply, "5 seconds"));
+                } else {
+                  yield* _(
+                    ChannelService.overridePermissions(channel, member.id, {
+                      ViewChannel: true,
+                      SendMessages: true,
+                      ReadMessageHistory: true,
+                    })
+                  );
+                  yield* _(
+                    InteractionService.followUp(interaction, `${userMention(member.id)} has been added to this ticket.`)
+                  );
+                  yield* _(Effect.sync(() => end()));
+                }
               }
             })
           )
