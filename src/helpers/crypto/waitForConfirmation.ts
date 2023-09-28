@@ -6,7 +6,7 @@ import { TradeMediums } from "@/src/config";
 export const waitForConfirmation = (medium: TradeMediums, hash: string, confirmations: number) => {
   return Effect.gen(function* (_) {
     const errorCountRef = yield* _(Ref.make(0));
-    const activeRef = yield* _(Ref.make(false));
+    const activeRef = yield* _(Ref.make(true));
     yield* _(
       Effect.repeat(
         Effect.gen(function* (_) {
