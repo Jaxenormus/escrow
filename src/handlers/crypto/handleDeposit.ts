@@ -6,7 +6,7 @@ import { ActionRowBuilder, EmbedBuilder, hyperlink } from "discord.js";
 import { Effect, Either, Option, Ref, Schedule, pipe } from "effect";
 import { toString } from "lodash";
 
-import type { TradeMediums } from "@/src/config";
+import { TradeMediums } from "@/src/config";
 import { CryptoConfirmations, EmbedColors, TradeParties } from "@/src/config";
 import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
@@ -29,7 +29,7 @@ export const handleDeposit = (
 ) => {
   return Effect.gen(function* (_) {
     const mediumAssets = container.assets.crypto[medium];
-    const disclaimer = yield* _(
+    yield* _(
       MessageService.send(channel, {
         content: ids.SENDER.mention,
         embeds: [
@@ -39,7 +39,13 @@ export const handleDeposit = (
               `The bot will automatically detect the transaction and wait for ${CryptoConfirmations[medium]} confirmation(s).`
             )
             .addFields([
-              { name: `Address`, value: hyperlink(address.data, findAddressUrl(medium, address.data)) },
+              {
+                name: `Address`,
+                value: hyperlink(
+                  medium === TradeMediums.Ethereum ? `0x${address.data}` : address.data,
+                  findAddressUrl(medium, address.data)
+                ),
+              },
               { name: `Amount`, value: `${amount.crypto} (${amount.fiat})` },
             ])
 
