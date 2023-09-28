@@ -170,7 +170,7 @@ export class CryptoApi {
         this.createBlockCypherInstance(type).post<BlockCypherNewAddressResponse>(
           "/addrs",
           {},
-          { params: { ...(type !== TradeMediums.Ethereum ? { bech32: true } : {}) } }
+          { params: { bech32: type === TradeMediums.Bitcoin } }
         ),
       catch: (unknown) => {
         container.sentry.captureException(unknown);
