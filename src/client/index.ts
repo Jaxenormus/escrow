@@ -24,6 +24,7 @@ const buildCryptoAsset = (data: string) => {
     pending: buildTuple(`${data}-pending`),
     trend: { up: buildTuple(`${data}-trend-up`), down: buildTuple(`${data}-trend-down`) },
     failed: buildTuple(`${data}-failed`),
+    returned: buildTuple(`${data}-returned`),
   };
 };
 

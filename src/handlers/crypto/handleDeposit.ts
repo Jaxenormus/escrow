@@ -112,7 +112,10 @@ export const handleDeposit = (
         MessageService.send(channel, {
           embeds: [
             new EmbedBuilder()
-              .setTitle("Valid transaction has been detected.")
+              .setTitle("Please wait for the transaction to confirm.")
+              .setDescription(
+                "A valid transaction has been detected but not yet confirmed. Please wait before proceeding with your exchange."
+              )
               .addFields([
                 {
                   name: "Hash",
@@ -123,7 +126,7 @@ export const handleDeposit = (
                   value: toString(CryptoConfirmations[medium]),
                   inline: true,
                 },
-                { name: "Amount Received ", value: formattedAmountReceived, inline: true },
+                { name: "Expected Amount", value: formattedAmountReceived, inline: true },
               ])
               .setColor(EmbedColors.Loading)
               .setThumbnail(mediumAssets.pending.name),
@@ -220,9 +223,9 @@ export const handleDeposit = (
                     `The ${medium} has been returned to the sender because the receiver denied the transaction.`
                   )
                   .setColor(EmbedColors.Success)
-                  .setThumbnail(mediumAssets.confirmed.name),
+                  .setThumbnail(mediumAssets.returned.name),
               ],
-              files: [mediumAssets.confirmed.attachment],
+              files: [mediumAssets.returned.attachment],
               components: [
                 new ActionRowBuilder<ButtonBuilder>().addComponents(
                   new ButtonBuilder()
