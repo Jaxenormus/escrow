@@ -104,8 +104,7 @@ export default class EmbedsCommand extends Command {
                 name: "How much does it cost? 💳",
                 value: "As of right now, our service is entirely **free**",
               },
-            ])
-            .setImage("https://cdn.discordapp.com/attachments/1035941590000218187/1059368297809850408/GG-Draco.gif"),
+            ]),
         ],
       });
     }
