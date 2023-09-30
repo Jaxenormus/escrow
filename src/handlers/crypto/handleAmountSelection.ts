@@ -24,6 +24,7 @@ export function handleAmountSelection(
   return Effect.gen(function* (_) {
     const message = yield* _(
       MessageService.send(channel, {
+        content: ids.RECEIVER.mention,
         embeds: [
           new EmbedBuilder()
             .setTitle(`What is the amount you want to receive in USD?`)
