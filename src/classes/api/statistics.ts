@@ -85,7 +85,7 @@ export class StatisticsApi {
       icon: "💰",
       tags: {
         medium: toLower(SimplifiedTradeMediums[medium]),
-        fiat: amount.fiat,
+        fiat: amount.raw_fiat,
         crypto: amount.crypto,
       },
     });
