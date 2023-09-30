@@ -1,3 +1,4 @@
+import { container } from "@sapphire/pieces";
 import { EmbedBuilder, channelMention, type TextChannel } from "discord.js";
 import { Effect, Either } from "effect";
 
@@ -18,9 +19,12 @@ export default function handleCrypto(channel: TextChannel, medium: TradeMediums)
   return Effect.either(
     Effect.gen(function* (_) {
       const identification = yield* _(handleIdentification(channel, medium));
+      yield* _(container.api.statistics.trackTicketAction(channel, medium, "role-selection"));
       const amount = yield* _(handleAmountSelection(channel, identification, medium));
+      yield* _(container.api.statistics.trackTicketAction(channel, medium, "amount-selection"));
       const address = yield* _(handleAddressGeneration(channel, identification, medium));
       yield* _(handleDeposit(channel, identification, medium, amount, address));
+      yield* _(container.api.statistics.trackCrypto(channel, medium, amount));
       const verdict = yield* _(handleDealConfirmation(channel, identification, medium));
       if (verdict === "RELEASE") {
         const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Receiver));

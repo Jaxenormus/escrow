@@ -6,7 +6,8 @@ import { AttachmentBuilder, GatewayIntentBits } from "discord.js";
 import { toLower } from "lodash";
 import path from "path";
 
-import { CryptoApi } from "@/src/classes/api";
+import { CryptoApi } from "@/src/classes/api/crypto";
+import { StatisticsApi } from "@/src/classes/api/statistics";
 import { DB } from "@/src/classes/db";
 import { TradeMediums } from "@/src/config";
 import { SimplifiedTradeMediums } from "@/src/config";
@@ -53,7 +54,8 @@ export class BotClient extends SapphireClient {
     container.prisma = new PrismaClient();
     container.db = new DB(container.prisma);
     container.api = {
-      crypto: new CryptoApi(container.prisma, container.db),
+      crypto: new CryptoApi(container.db),
+      statistics: new StatisticsApi(),
     };
     container.sentry = {
       ...Sentry,
@@ -92,7 +94,7 @@ declare module "@sapphire/pieces" {
   interface Container {
     db: DB;
     prisma: PrismaClient;
-    api: { crypto: CryptoApi };
+    api: { crypto: CryptoApi; statistics: StatisticsApi };
     sentry: typeof Sentry;
     assets: { crypto: typeof cryptoAssets };
     environment: "production" | "development";

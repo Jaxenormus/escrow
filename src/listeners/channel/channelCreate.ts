@@ -30,6 +30,7 @@ export default class ChannelCreateListener extends Listener {
     if (!isNil(matches) && channel.isTextBased() && channel.type === ChannelType.GuildText) {
       const medium = TradeMediums[startCase(matches[1].replace("-", "_")) as unknown as keyof typeof TradeMediums];
       if (medium) {
+        await Effect.runPromise(this.container.api.statistics.trackTicketAction(channel, medium, "create"));
         const prompt = await channel.send({
           embeds: [
             new EmbedBuilder({
@@ -84,6 +85,8 @@ export default class ChannelCreateListener extends Listener {
             })
           )
         );
+
+        await Effect.runPromise(this.container.api.statistics.trackTicketAction(channel, medium, "invite"));
 
         switch (medium) {
           case TradeMediums.Bitcoin:

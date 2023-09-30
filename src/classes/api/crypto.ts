@@ -1,6 +1,5 @@
 import { sign, utils } from "@noble/secp256k1";
 import type { Address } from "@prisma/client";
-import type { PrismaClient } from "@prisma/client";
 import { container } from "@sapphire/pieces";
 import type { AxiosRequestConfig } from "axios";
 import axios, { AxiosError } from "axios";
@@ -98,11 +97,9 @@ export interface BlockCypherFaucetResponse {
 }
 
 export class CryptoApi {
-  private readonly prisma: PrismaClient;
   private readonly db: DB;
 
-  constructor(prisma: PrismaClient, db: DB) {
-    this.prisma = prisma;
+  constructor(db: DB) {
     this.db = db;
   }
 
