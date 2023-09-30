@@ -1,8 +1,8 @@
-import type { GuildTextBasedChannel, Message, MessageCollectorOptions } from "discord.js";
+import type { TextChannel, Message, MessageCollectorOptions } from "discord.js";
 import { Effect } from "effect";
 
 export function listenForMessages(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   onMessage: (ctx: { received: Message; endListener: Effect.Effect<never, never, void> }) => Promise<void> | void,
   options?: MessageCollectorOptions
 ) {

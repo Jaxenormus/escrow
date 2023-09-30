@@ -1,6 +1,6 @@
 import type { ChatInputCommand } from "@sapphire/framework";
 import { Command, container } from "@sapphire/framework";
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { Effect, Either } from "effect";
 
 import { TradeMediums } from "@/src/config";
@@ -42,7 +42,7 @@ export default class NewAddressCommand extends Command {
       await Effect.runPromise(
         Effect.gen(function* (_) {
           const responseEither = yield* _(
-            Effect.either(container.api.crypto.newBotAddress(interaction.channel as GuildTextBasedChannel, coin))
+            Effect.either(container.api.crypto.newBotAddress(interaction.channel as TextChannel, coin))
           );
           if (Either.isRight(responseEither)) {
             const response = responseEither.right;

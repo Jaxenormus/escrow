@@ -1,6 +1,6 @@
 import type { Address } from "@prisma/client";
 import { container } from "@sapphire/pieces";
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { EmbedBuilder } from "discord.js";
 import { Effect } from "effect";
 
@@ -11,7 +11,7 @@ import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { MessageService } from "@/src/helpers/services/Message";
 
 export function handleAddressGeneration(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   ids: Identification,
   medium: TradeMediums
 ): Effect.Effect<never, ExpectedExecutionError | Error, Address> {

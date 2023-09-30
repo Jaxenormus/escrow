@@ -2,7 +2,7 @@ import { container } from "@sapphire/pieces";
 import type { Message, MessageEditOptions } from "discord.js";
 import {
   DiscordAPIError,
-  type GuildTextBasedChannel,
+  type TextChannel,
   type MessageCreateOptions,
   type MessagePayload,
 } from "discord.js";
@@ -12,7 +12,7 @@ import type { DurationInput } from "effect/Duration";
 import { MessageServiceError } from "@/src/errors/MessageServiceError";
 
 export class MessageService {
-  static send(channel: GuildTextBasedChannel, data: string | MessagePayload | MessageCreateOptions) {
+  static send(channel: TextChannel, data: string | MessagePayload | MessageCreateOptions) {
     return Effect.tryPromise({
       try: () => channel.send(data),
       catch: (unknown) => {

@@ -1,6 +1,6 @@
 import type { Address } from "@prisma/client";
 import { container } from "@sapphire/framework";
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, codeBlock } from "discord.js";
 import { Effect, Either } from "effect";
 import { toLower } from "lodash";
@@ -13,7 +13,7 @@ import { waitForConfirmation } from "@/src/helpers/crypto/waitForConfirmation";
 import { MessageService } from "@/src/helpers/services/Message";
 
 export default function handleRelease(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   ids: Identification,
   party: TradeParties,
   medium: TradeMediums,

@@ -1,4 +1,4 @@
-import { EmbedBuilder, channelMention, type GuildTextBasedChannel } from "discord.js";
+import { EmbedBuilder, channelMention, type TextChannel } from "discord.js";
 import { Effect, Either } from "effect";
 
 import type { TradeMediums } from "@/src/config";
@@ -10,10 +10,11 @@ import { handleAddressGeneration } from "@/src/handlers/crypto/handleAddressGene
 import { handleAmountSelection } from "@/src/handlers/crypto/handleAmountSelection";
 import { handleDeposit } from "@/src/handlers/crypto/handleDeposit";
 import handleRelease from "@/src/handlers/crypto/handleRelease";
+import { ChannelService } from "@/src/helpers/services/Channel";
 import { MemberService } from "@/src/helpers/services/Member";
 import { MessageService } from "@/src/helpers/services/Message";
 
-export default function handleCrypto(channel: GuildTextBasedChannel, medium: TradeMediums) {
+export default function handleCrypto(channel: TextChannel, medium: TradeMediums) {
   return Effect.either(
     Effect.gen(function* (_) {
       const identification = yield* _(handleIdentification(channel, medium));
@@ -47,6 +48,7 @@ export default function handleCrypto(channel: GuildTextBasedChannel, medium: Tra
               MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
             )
           );
+          // yield* _(ChannelService.delete(channel as TextChannel, ""));
         }
       } else if (verdict === "RETURN") {
         const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Sender));

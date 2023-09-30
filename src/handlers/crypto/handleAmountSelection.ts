@@ -1,5 +1,5 @@
 import { container } from "@sapphire/pieces";
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { EmbedBuilder, codeBlock } from "discord.js";
 import { Effect } from "effect";
 import { isNil, toString } from "lodash";
@@ -17,7 +17,7 @@ import { MessageService } from "@/src/helpers/services/Message";
 export type CryptoDealAmount = { raw_crypto: number; crypto: string; raw_fiat: number; fiat: string };
 
 export function handleAmountSelection(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   ids: Identification,
   medium: TradeMediums
 ): Effect.Effect<never, ExpectedExecutionError, CryptoDealAmount> {

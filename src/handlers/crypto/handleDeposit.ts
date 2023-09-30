@@ -1,6 +1,6 @@
 import type { Address } from "@prisma/client";
 import { container } from "@sapphire/pieces";
-import type { GuildTextBasedChannel, Message } from "discord.js";
+import type { TextChannel, Message } from "discord.js";
 import { ButtonBuilder, ButtonStyle, codeBlock } from "discord.js";
 import { ActionRowBuilder, EmbedBuilder, hyperlink } from "discord.js";
 import { Effect, Either, Option, Ref, Schedule, pipe } from "effect";
@@ -21,7 +21,7 @@ import { promptQuestion } from "@/src/helpers/promptQuestion";
 import { MessageService } from "@/src/helpers/services/Message";
 
 export const handleDeposit = (
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   ids: Identification,
   medium: TradeMediums,
   amount: CryptoDealAmount,

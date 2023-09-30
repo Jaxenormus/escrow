@@ -20,7 +20,7 @@ export class DB {
     this.prisma = prisma;
   }
 
-  // public findTicket(channel: GuildTextBasedChannel, include: Prisma.TicketInclude) {
+  // public findTicket(channel: TextChannel, include: Prisma.TicketInclude) {
   //   return Effect.tryPromise({
   //     try: () => this.prisma.ticket.findFirst({ where: { id: channel.id }, include }),
   //     catch: (unknown) => {
@@ -76,7 +76,7 @@ export class DB {
   //   });
   // }
 
-  // public editTicketMetadata(channel: GuildTextBasedChannel, metadata: z.infer<typeof ticketMetadataSchema>) {
+  // public editTicketMetadata(channel: TextChannel, metadata: z.infer<typeof ticketMetadataSchema>) {
   //   return Effect.tryPromise({
   //     try: async () => {
   //       const ticket = await Effect.runPromise(this.findTicket(channel, {}));
@@ -98,7 +98,7 @@ export class DB {
   //   });
   // }
 
-  // public editTicket(channel: GuildTextBasedChannel, data: Omit<Prisma.TicketUpdateInput, "metadata">) {
+  // public editTicket(channel: TextChannel, data: Omit<Prisma.TicketUpdateInput, "metadata">) {
   //   return Effect.tryPromise({
   //     try: () => this.prisma.ticket.update({ where: { id: channel.id }, data }),
   //     catch: (unknown) => {

@@ -1,6 +1,6 @@
 import { Listener } from "@sapphire/framework";
 import type { GuildChannel } from "discord.js";
-import { UserSelectMenuBuilder } from "discord.js";
+import { ChannelType, UserSelectMenuBuilder } from "discord.js";
 import { ActionRowBuilder, EmbedBuilder, codeBlock, userMention } from "discord.js";
 import { Effect, Either } from "effect";
 import { isNil, toLower, toString } from "lodash";
@@ -27,7 +27,7 @@ export default class ChannelCreateListener extends Listener {
 
   public async run(channel: GuildChannel) {
     const matches = channel.name.match(/^(.+)-([0-9]+)$/);
-    if (!isNil(matches) && channel.isTextBased()) {
+    if (!isNil(matches) && channel.isTextBased() && channel.type === ChannelType.GuildText) {
       const medium = TradeMediums[startCase(matches[1].replace("-", "_")) as unknown as keyof typeof TradeMediums];
       if (medium) {
         const prompt = await channel.send({

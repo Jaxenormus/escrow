@@ -1,4 +1,4 @@
-import type { GuildTextBasedChannel, Message, MessageCreateOptions } from "discord.js";
+import type { TextChannel, Message, MessageCreateOptions } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, userMention } from "discord.js";
 import { Effect, Ref } from "effect";
 
@@ -9,7 +9,7 @@ import { MessageService } from "@/src/helpers/services/Message";
 import AdminOnlyPrecondition from "@/src/preconditions/roles/adminOnly";
 
 export function promptQuestion(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   content: MessageCreateOptions | EmbedBuilder,
   respondents: string[],
   buttons: { confirm: string; deny: string },

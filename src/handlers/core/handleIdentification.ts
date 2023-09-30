@@ -1,4 +1,4 @@
-import type { ComponentType, GuildTextBasedChannel } from "discord.js";
+import type { ComponentType, TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, inlineCode, userMention } from "discord.js";
 import { Effect, Ref } from "effect";
 
@@ -19,7 +19,7 @@ export type Identification = {
 };
 
 export default function handleIdentification(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   medium: TradeMediums
 ): Effect.Effect<never, ExpectedExecutionError, Identification> {
   const identificationEmbed = new EmbedBuilder({

@@ -1,6 +1,6 @@
 import type { ChatInputCommand } from "@sapphire/framework";
 import { Command, container } from "@sapphire/framework";
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, inlineCode } from "discord.js";
 import { Effect, Either } from "effect";
 
@@ -46,7 +46,7 @@ export default class ReleaseCryptoCommand extends Command {
       const to = interaction.options.getString("to", true);
       return Effect.runPromiseExit(
         Effect.gen(function* (_) {
-          const address = yield* _(container.db.findAddress({ id: (interaction.channel as GuildTextBasedChannel).id }));
+          const address = yield* _(container.db.findAddress({ id: (interaction.channel as TextChannel).id }));
           if (address) {
             const releaseEither = yield* _(Effect.either(container.api.crypto.releaseHeldCrypto(medium, address, to)));
             if (Either.isRight(releaseEither)) {

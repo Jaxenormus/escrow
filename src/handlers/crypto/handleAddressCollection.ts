@@ -1,5 +1,5 @@
 import { container } from "@sapphire/framework";
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { EmbedBuilder, hyperlink } from "discord.js";
 import { Effect } from "effect";
 
@@ -14,7 +14,7 @@ import { promptQuestion } from "@/src/helpers/promptQuestion";
 import { MessageService } from "@/src/helpers/services/Message";
 
 export default function handleAddressCollection(
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   ids: Identification,
   medium: TradeMediums,
   party: TradeParties

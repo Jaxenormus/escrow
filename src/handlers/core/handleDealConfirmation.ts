@@ -1,4 +1,4 @@
-import type { GuildTextBasedChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { EmbedBuilder, userMention } from "discord.js";
 import { Effect } from "effect";
 
@@ -12,7 +12,7 @@ import { MessageService } from "@/src/helpers/services/Message";
 type ConfirmationVerdict = "RELEASE" | "RETURN" | "CANCEL" | "RESTART";
 
 export const handleDealConfirmation = (
-  channel: GuildTextBasedChannel,
+  channel: TextChannel,
   ids: Identification,
   medium: TradeMediums
 ): Effect.Effect<never, unknown, ConfirmationVerdict> => {
