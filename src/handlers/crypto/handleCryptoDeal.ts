@@ -48,7 +48,7 @@ export default function handleCrypto(channel: TextChannel, medium: TradeMediums)
               MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
             )
           );
-          // yield* _(ChannelService.delete(channel as TextChannel, ""));
+          yield* _(ChannelService.delete(channel as TextChannel, "5 minutes"));
         }
       } else if (verdict === "RETURN") {
         const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Sender));
