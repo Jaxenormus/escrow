@@ -1,5 +1,6 @@
 import type { ChatInputCommand } from "@sapphire/framework";
 import { Command, container } from "@sapphire/framework";
+import type { GuildTextBasedChannel } from "discord.js";
 import { Effect, Either } from "effect";
 
 import { TradeMediums } from "@/src/config";
@@ -35,19 +36,23 @@ export default class NewAddressCommand extends Command {
   }
 
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-    await interaction.deferReply();
-    const coin = interaction.options.getString("coin", true) as TradeMediums;
-    await Effect.runPromise(
-      Effect.gen(function* (_) {
-        const responseEither = yield* _(Effect.either(container.api.crypto.newBotAddress(coin)));
-        if (Either.isRight(responseEither)) {
-          const response = responseEither.right;
-          return yield* _(InteractionService.followUp(interaction, { content: response.data }));
-        } else {
-          const error = responseEither.left;
-          return yield* _(InteractionService.followUp(interaction, { content: error.message }));
-        }
-      })
-    );
+    if (interaction.channel && interaction.channel.isTextBased() && interaction.inGuild()) {
+      await interaction.deferReply();
+      const coin = interaction.options.getString("coin", true) as TradeMediums;
+      await Effect.runPromise(
+        Effect.gen(function* (_) {
+          const responseEither = yield* _(
+            Effect.either(container.api.crypto.newBotAddress(interaction.channel as GuildTextBasedChannel, coin))
+          );
+          if (Either.isRight(responseEither)) {
+            const response = responseEither.right;
+            return yield* _(InteractionService.followUp(interaction, { content: response.data }));
+          } else {
+            const error = responseEither.left;
+            return yield* _(InteractionService.followUp(interaction, { content: error.message }));
+          }
+        })
+      );
+    }
   }
 }

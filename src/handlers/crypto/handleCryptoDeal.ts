@@ -1,5 +1,5 @@
 import { EmbedBuilder, channelMention, type GuildTextBasedChannel } from "discord.js";
-import { Effect } from "effect";
+import { Effect, Either } from "effect";
 
 import type { TradeMediums } from "@/src/config";
 import { EmbedColors, TradeParties } from "@/src/config";
@@ -23,27 +23,31 @@ export default function handleCrypto(channel: GuildTextBasedChannel, medium: Tra
       const verdict = yield* _(handleDealConfirmation(channel, identification, medium));
       if (verdict === "RELEASE") {
         const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Receiver));
-        yield* _(handleRelease(channel, identification, TradeParties.Receiver, medium, address, toAddress));
-        yield* _(
-          MessageService.send(channel, {
-            content: identification.all.mention,
-            embeds: [
-              new EmbedBuilder()
-                .setTitle("Don't forget to vouch")
-                .setDescription(
-                  `We hope you loved using our service. Please leave a vouch in ${channelMention(
-                    process.env.VOUCH_CHANNEL_ID ?? ""
-                  )} to help us grow!`
-                )
-                .setColor(EmbedColors.Main),
-            ],
-          })
+        const releaseEither = yield* _(
+          Effect.either(handleRelease(channel, identification, TradeParties.Receiver, medium, address, toAddress))
         );
-        yield* _(
-          Effect.forEach([identification.SENDER.id, identification.RECEIVER.id], (id) =>
-            MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
-          )
-        );
+        if (Either.isRight(releaseEither)) {
+          yield* _(
+            MessageService.send(channel, {
+              content: identification.all.mention,
+              embeds: [
+                new EmbedBuilder()
+                  .setTitle("Don't forget to vouch")
+                  .setDescription(
+                    `We hope you loved using our service. Please leave a vouch in ${channelMention(
+                      process.env.VOUCH_CHANNEL_ID ?? ""
+                    )} to help us grow!`
+                  )
+                  .setColor(EmbedColors.Main),
+              ],
+            })
+          );
+          yield* _(
+            Effect.forEach([identification.SENDER.id, identification.RECEIVER.id], (id) =>
+              MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
+            )
+          );
+        }
       } else if (verdict === "RETURN") {
         const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Sender));
         yield* _(handleRelease(channel, identification, TradeParties.Sender, medium, address, toAddress));

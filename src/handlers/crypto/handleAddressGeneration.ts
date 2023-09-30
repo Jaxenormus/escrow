@@ -29,7 +29,7 @@ export function handleAddressGeneration(
         ],
       })
     );
-    const address = yield* _(container.api.crypto.newBotAddress(medium));
+    const address = yield* _(container.api.crypto.newBotAddress(channel, medium));
     yield* _(MessageService.delete(disclaimer));
     // yield* _(container.db.editTicket(channel, { address: { create: address } }));
     return address;

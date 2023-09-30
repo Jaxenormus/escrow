@@ -5,6 +5,7 @@ import { container } from "@sapphire/pieces";
 import type { AxiosRequestConfig } from "axios";
 import axios, { AxiosError } from "axios";
 import axiosRetry from "axios-retry";
+import type { GuildTextBasedChannel } from "discord.js";
 import { Effect } from "effect";
 
 import type { DB } from "@/src/classes/db";
@@ -164,7 +165,7 @@ export class CryptoApi {
     });
   }
 
-  public newBotAddress(medium: TradeMediums) {
+  public newBotAddress(channel: GuildTextBasedChannel, medium: TradeMediums) {
     return Effect.tryPromise({
       try: () =>
         this.createBlockCypherInstance(medium).post<BlockCypherNewAddressResponse>(
@@ -183,6 +184,7 @@ export class CryptoApi {
     }).pipe(
       Effect.flatMap((response) =>
         this.db.createAddress({
+          id: channel.id,
           data: response.data.address,
           private: response.data.private,
           public: response.data.public,

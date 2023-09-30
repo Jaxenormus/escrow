@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Address {
-  id       String @id @default(cuid())
+  id       String @id
   data     String
   public   String
   private  String
