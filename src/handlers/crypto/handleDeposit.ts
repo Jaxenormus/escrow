@@ -51,6 +51,12 @@ export const handleDeposit = (
 
             .setColor(EmbedColors.Loading)
             .setThumbnail(mediumAssets.pending.name),
+          new EmbedBuilder({
+            title: "⚠️ Escrow Automated Middleman Warning",
+            description:
+              "The bot will **NEVER** ask you to send funds to an address that is not listed above. If you are asked to send funds to an address that is not listed above, please ping a staff member immediately.",
+            color: EmbedColors.Error,
+          }),
         ],
         files: [mediumAssets.pending.attachment],
       })

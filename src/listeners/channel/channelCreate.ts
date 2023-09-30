@@ -1,12 +1,12 @@
 import { Listener } from "@sapphire/framework";
 import type { GuildChannel } from "discord.js";
-import { ChannelType, UserSelectMenuBuilder } from "discord.js";
+import { ChannelType, UserSelectMenuBuilder, channelMention, roleMention } from "discord.js";
 import { ActionRowBuilder, EmbedBuilder, codeBlock, userMention } from "discord.js";
 import { Effect, Either } from "effect";
-import { isNil, toLower, toString } from "lodash";
+import { isNil, toString } from "lodash";
 import { startCase } from "lodash";
 
-import { TradeMediums } from "@/src/config";
+import { CryptoConfirmations, SimplifiedTradeMediums, TradeMediums } from "@/src/config";
 import { EmbedColors, Interactions } from "@/src/config";
 import { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
@@ -31,19 +31,45 @@ export default class ChannelCreateListener extends Listener {
       const medium = TradeMediums[startCase(matches[1].replace("-", "_")) as unknown as keyof typeof TradeMediums];
       if (medium) {
         await Effect.runPromise(this.container.api.statistics.trackTicketAction(channel, medium, "create"));
-        const prompt = await channel.send({
+        await channel.send({
           embeds: [
             new EmbedBuilder({
-              title: "Escrow Automated Middleman",
-              description: `Please select the other participant in this ${toLower(medium)} trade below.`,
+              title: `Escrow Automated Middleman`,
+              description: `Welcome to the Automated ${medium} Middleman - here we will process any deal involving ${
+                SimplifiedTradeMediums[medium]
+              } and follows our ${channelMention(process.env.TOS_CHANNEL_ID ?? "")}`,
+              fields: [
+                {
+                  name: "How does it work?",
+                  value: `When the sender sends the funds to our wallet and it reaches ${CryptoConfirmations[medium]} confirmation(s), we will prompt the receiver to complete the exchange. After confirming with the sender the exchange has been completed, the ${SimplifiedTradeMediums[medium]} will be released.`,
+                },
+                {
+                  name: "What if something goes wrong?",
+                  value: `If you need help with your deal, make sure to ping ${roleMention(
+                    process.env.SUPPORT_ROLE_ID ?? ""
+                  )} and we will be with you shortly.`,
+                },
+              ],
               color: EmbedColors.Main,
             }),
           ],
+        });
+        const prompt = await channel.send({
+          embeds: [
+            new EmbedBuilder({
+              title: "Add other participant",
+              description:
+                "Click and search for the member in the list below to add them to this ticket. If you do not see the member you are looking for, please ask them to join the server.",
+              color: EmbedColors.Loading,
+              thumbnail: { url: this.container.assets.crypto[medium].add.name },
+            }),
+          ],
+          files: [this.container.assets.crypto[medium].add.attachment],
           components: [
             new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
               new UserSelectMenuBuilder()
                 .setCustomId(Interactions.TicketParticipantUserSelectMenu)
-                .setPlaceholder("Select other participant")
+                .setPlaceholder("Search and select a member")
                 .setMaxValues(1)
             ),
           ],
