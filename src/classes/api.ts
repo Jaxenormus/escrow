@@ -217,7 +217,7 @@ export class CryptoApi {
               const signature = utils.bytesToHex(await sign(tosign, source.private));
               return {
                 txs: response.data,
-                signature: medium !== TradeMediums.Ethereum ? `${signature}01` : signature,
+                signature: medium === TradeMediums.Bitcoin ? `${signature}01` : signature,
               };
             },
             catch: (unknown) => {
