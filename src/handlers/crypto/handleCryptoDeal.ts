@@ -1,9 +1,10 @@
 import { container } from "@sapphire/pieces";
-import { EmbedBuilder, channelMention, type TextChannel } from "discord.js";
+import { type TextChannel } from "discord.js";
 import { Effect, Either } from "effect";
 
 import type { TradeMediums } from "@/src/config";
-import { EmbedColors, TradeParties } from "@/src/config";
+import { TradeParties } from "@/src/config";
+import { handleDealCompletion } from "@/src/handlers/core/handleDealCompletion";
 import { handleDealConfirmation } from "@/src/handlers/core/handleDealConfirmation";
 import handleIdentification from "@/src/handlers/core/handleIdentification";
 import handleAddressCollection from "@/src/handlers/crypto/handleAddressCollection";
@@ -11,9 +12,6 @@ import { handleAddressGeneration } from "@/src/handlers/crypto/handleAddressGene
 import { handleAmountSelection } from "@/src/handlers/crypto/handleAmountSelection";
 import { handleDeposit } from "@/src/handlers/crypto/handleDeposit";
 import handleRelease from "@/src/handlers/crypto/handleRelease";
-import { ChannelService } from "@/src/helpers/services/Channel";
-import { MemberService } from "@/src/helpers/services/Member";
-import { MessageService } from "@/src/helpers/services/Message";
 
 export default function handleCrypto(channel: TextChannel, medium: TradeMediums) {
   return Effect.either(
@@ -31,29 +29,7 @@ export default function handleCrypto(channel: TextChannel, medium: TradeMediums)
         const releaseEither = yield* _(
           Effect.either(handleRelease(channel, identification, TradeParties.Receiver, medium, address, toAddress))
         );
-        if (Either.isRight(releaseEither)) {
-          yield* _(
-            MessageService.send(channel, {
-              content: identification.all.mention,
-              embeds: [
-                new EmbedBuilder()
-                  .setTitle("Don't forget to vouch")
-                  .setDescription(
-                    `We hope you loved using our service. Please leave a vouch in ${channelMention(
-                      process.env.VOUCH_CHANNEL_ID ?? ""
-                    )} to help us grow!`
-                  )
-                  .setColor(EmbedColors.Main),
-              ],
-            })
-          );
-          yield* _(
-            Effect.forEach([identification.SENDER.id, identification.RECEIVER.id], (id) =>
-              MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
-            )
-          );
-          yield* _(ChannelService.delete(channel as TextChannel, "5 minutes"));
-        }
+        if (Either.isRight(releaseEither)) yield* _(handleDealCompletion(channel, identification));
       } else if (verdict === "RETURN") {
         const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Sender));
         yield* _(handleRelease(channel, identification, TradeParties.Sender, medium, address, toAddress));

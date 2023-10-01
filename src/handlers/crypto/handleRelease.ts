@@ -79,6 +79,7 @@ export default function handleRelease(
           files: [container.assets.crypto[medium].failed.attachment],
         })
       );
+      yield* _(Effect.fail(hashEither.left));
     }
   });
 }
