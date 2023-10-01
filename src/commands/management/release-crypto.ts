@@ -33,8 +33,8 @@ export default class ReleaseCryptoCommand extends Command {
               { name: "Litecoin", value: TradeMediums.Litecoin }
             )
         )
-        .addStringOption((option) => option.setName("channel").setDescription("The channel to release from"))
         .addStringOption((option) => option.setName("to").setDescription("The address to release to").setRequired(true))
+        .addStringOption((option) => option.setName("channel").setDescription("The channel to release from"))
     );
   }
 
