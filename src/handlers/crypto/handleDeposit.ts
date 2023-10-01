@@ -69,6 +69,9 @@ export const handleDeposit = (
     const transactionHashRef = yield* _(Ref.make(""));
     const transactionStatusRef = yield* _(Ref.make(""));
 
+    const callback = () => Effect.runSync(Ref.set(activeRef, false));
+    container.events.ticket.on(channel.id, callback);
+
     yield* _(
       Effect.repeat(
         Effect.gen(function* (_) {
@@ -103,6 +106,8 @@ export const handleDeposit = (
         )
       )
     );
+
+    container.events.ticket.off(channel.id, callback);
 
     const rawAmountReceived = yield* _(Ref.get(rawAmountReceivedRef));
     const transactionHash = yield* _(Ref.get(transactionHashRef));
@@ -264,7 +269,7 @@ export const handleDeposit = (
       }
     }
 
-    yield* _(waitForConfirmation(medium, transactionHash, CryptoConfirmations[medium]));
+    yield* _(waitForConfirmation(channel, medium, transactionHash, CryptoConfirmations[medium]));
     const hash = yield* _(container.api.crypto.getHashInfo(medium, transactionHash));
     yield* _(pipe(Ref.get(messagesToDeleteRef), Effect.flatMap(MessageService.batchDelete)));
 

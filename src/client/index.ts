@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import { AttachmentBuilder, GatewayIntentBits } from "discord.js";
 import { toLower } from "lodash";
 import path from "path";
+import { EventEmitter } from "stream";
 
 import { CryptoApi } from "@/src/classes/api/crypto";
 import { StatisticsApi } from "@/src/classes/api/statistics";
@@ -35,6 +36,8 @@ const cryptoAssets = {
   [TradeMediums.Ethereum]: buildCryptoAsset(SimplifiedTradeMediums[TradeMediums.Ethereum]),
   [TradeMediums.Litecoin]: buildCryptoAsset(SimplifiedTradeMediums[TradeMediums.Litecoin]),
 };
+
+const ticketEmitter = new EventEmitter();
 
 export class BotClient extends SapphireClient {
   public constructor() {
@@ -82,6 +85,7 @@ export class BotClient extends SapphireClient {
       environment: container.environment,
     });
     container.assets = { crypto: cryptoAssets };
+    container.events = { ticket: ticketEmitter };
     return super.login(token);
   }
 
@@ -99,6 +103,7 @@ declare module "@sapphire/pieces" {
     sentry: typeof Sentry;
     assets: { crypto: typeof cryptoAssets };
     environment: "production" | "development";
+    events: { ticket: typeof ticketEmitter };
   }
 }
 

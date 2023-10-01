@@ -45,7 +45,7 @@ export default function handleRelease(
           ],
         })
       );
-      yield* _(waitForConfirmation(medium, hashEither.right, CryptoConfirmations[medium]));
+      yield* _(waitForConfirmation(channel,medium, hashEither.right, CryptoConfirmations[medium]));
       yield* _(MessageService.delete(message));
       yield* _(
         MessageService.send(channel, {

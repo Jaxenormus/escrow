@@ -10,6 +10,6 @@ export default class ChannelDeleteListener extends Listener {
   }
 
   public async run(channel: GuildChannel) {
-    if (channel.isTextBased()) process.emit(channel.id as any, "Terminated" as any);
+    if (channel.isTextBased()) this.container.events.ticket.emit(channel.id, "terminate");
   }
 }

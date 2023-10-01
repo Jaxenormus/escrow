@@ -1,12 +1,22 @@
 import { container } from "@sapphire/framework";
+import type { TextChannel } from "discord.js";
 import { Effect, Either, Ref, Schedule } from "effect";
 
 import { TradeMediums } from "@/src/config";
 
-export const waitForConfirmation = (medium: TradeMediums, hash: string, confirmations: number) => {
+export const waitForConfirmation = (
+  channel: TextChannel,
+  medium: TradeMediums,
+  hash: string,
+  confirmations: number
+) => {
   return Effect.gen(function* (_) {
     const errorCountRef = yield* _(Ref.make(0));
     const activeRef = yield* _(Ref.make(true));
+
+    const callback = () => Effect.runSync(Ref.set(activeRef, false));
+    container.events.ticket.on(channel.id, callback);
+
     yield* _(
       Effect.repeat(
         Effect.gen(function* (_) {
@@ -35,5 +45,7 @@ export const waitForConfirmation = (medium: TradeMediums, hash: string, confirma
         )
       )
     );
+
+    container.events.ticket.off(channel.id, callback);
   });
 };
