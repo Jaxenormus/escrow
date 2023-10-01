@@ -1,30 +1,31 @@
 import { container } from "@sapphire/pieces";
 import type { Message, MessageEditOptions } from "discord.js";
-import {
-  DiscordAPIError,
-  type TextChannel,
-  type MessageCreateOptions,
-  type MessagePayload,
-} from "discord.js";
+import { DiscordAPIError, type TextChannel, type MessageCreateOptions, type MessagePayload } from "discord.js";
 import { Effect } from "effect";
 import type { DurationInput } from "effect/Duration";
 
 import { MessageServiceError } from "@/src/errors/MessageServiceError";
 
 export class MessageService {
-  static send(channel: TextChannel, data: string | MessagePayload | MessageCreateOptions) {
-    return Effect.tryPromise({
-      try: () => channel.send(data),
-      catch: (unknown) => {
-        container.sentry.captureException(unknown);
-        if (unknown instanceof DiscordAPIError) {
-          return new MessageServiceError(unknown.message, "delete");
-        } else {
-          return new MessageServiceError(unknown, "delete");
-        }
-      },
+  static send(channel: TextChannel, data: string | MessagePayload | MessageCreateOptions, timeout?: DurationInput) {
+    return Effect.gen(function* (_) {
+      if (timeout) yield* _(Effect.sleep(timeout));
+      return yield* _(
+        Effect.tryPromise({
+          try: () => channel.send(data),
+          catch: (unknown) => {
+            container.sentry.captureException(unknown);
+            if (unknown instanceof DiscordAPIError) {
+              return new MessageServiceError(unknown.message, "delete");
+            } else {
+              return new MessageServiceError(unknown, "delete");
+            }
+          },
+        })
+      );
     });
   }
+
   static edit(message: Message, data: string | MessagePayload | MessageEditOptions) {
     return Effect.tryPromise({
       try: () => message.edit(data),

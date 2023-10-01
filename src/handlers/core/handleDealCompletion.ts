@@ -1,10 +1,9 @@
-import type { TextChannel} from "discord.js";
+import type { TextChannel } from "discord.js";
 import { EmbedBuilder, channelMention } from "discord.js";
 import { Effect } from "effect";
 
 import { EmbedColors } from "@/src/config";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
-import { ChannelService } from "@/src/helpers/services/Channel";
 import { MemberService } from "@/src/helpers/services/Member";
 import { MessageService } from "@/src/helpers/services/Message";
 
@@ -33,6 +32,6 @@ export const handleDealCompletion = (
         MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
       )
     );
-    yield* _(ChannelService.delete(channel as TextChannel, "5 minutes"));
+    yield* _(MessageService.send(channel as TextChannel, "$close", "5 minutes"));
   });
 };
