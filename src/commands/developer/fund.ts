@@ -36,7 +36,7 @@ export default class FundCommand extends Command {
         .addStringOption((option) =>
           option.setName("address").setDescription("The address to send funds to").setRequired(true)
         )
-        .addIntegerOption((option) =>
+        .addStringOption((option) =>
           option.setName("amount").setDescription("The amount of funds to send").setRequired(true)
         )
     );
@@ -47,9 +47,9 @@ export default class FundCommand extends Command {
       await interaction.deferReply();
       const coin = interaction.options.getString("coin", true) as unknown as TradeMediums;
       const address = interaction.options.getString("address", true);
-      const rawAmount = interaction.options.getInteger("amount", true);
+      const rawAmount = interaction.options.getString("amount", true);
       const amount =
-        coin === TradeMediums.Ethereum ? web3.utils.toWei(rawAmount.toString(), "ether") : sb.toSatoshi(rawAmount);
+        coin === TradeMediums.Ethereum ? web3.utils.toWei(rawAmount, "ether") : sb.toSatoshi(rawAmount);
       await Effect.runPromise(
         Effect.gen(function* (_) {
           const responseEither = yield* _(Effect.either(container.api.crypto.faucet(coin, address, amount.toString())));

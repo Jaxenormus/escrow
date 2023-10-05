@@ -248,7 +248,10 @@ export class CryptoApi {
 
   public getHashInfo(medium: TradeMediums, hash: string) {
     return Effect.tryPromise({
-      try: () => this.createBlockCypherInstance(medium).get<BlockCypherHashInfoResponse>(`/txs/${hash}`),
+      try: () =>
+        this.createBlockCypherInstance(medium).get<BlockCypherHashInfoResponse>(`/txs/${hash}`, {
+          params: { limit: "999" },
+        }),
       catch: (unknown) => {
         container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
@@ -277,7 +280,9 @@ export class CryptoApi {
   public getFullAddressInfo(medium: TradeMediums, address: string) {
     return Effect.tryPromise({
       try: () =>
-        this.createBlockCypherInstance(medium).get<BlockCypherFullAddressInfoResponse>(`/addrs/${address}/full`),
+        this.createBlockCypherInstance(medium).get<BlockCypherFullAddressInfoResponse>(`/addrs/${address}/full`, {
+          params: { limit: "50" },
+        }),
       catch: (unknown) => {
         container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
