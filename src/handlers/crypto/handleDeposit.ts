@@ -62,7 +62,12 @@ export const handleDeposit = (
       })
     );
 
-    yield* _(Effect.forEach([address.data, amount.crypto], (content) => MessageService.send(channel, content)));
+    yield* _(
+      Effect.forEach(
+        [medium === TradeMediums.Ethereum ? `0x${address.data}` : address.data, amount.crypto],
+        (content) => MessageService.send(channel, content)
+      )
+    );
 
     const activeRef = yield* _(Ref.make(true));
     const rawAmountReceivedRef = yield* _(Ref.make(fiatFormat(0)));

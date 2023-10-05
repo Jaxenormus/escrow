@@ -44,8 +44,7 @@ export default class EmbedsCommand extends Command {
                 value:
                   "This system is **100% secure**, we ensure every ticket has its own unique wallet to avoid any confliction. All wallet private keys are encrypted and securely stored, they are backed up and can be accessed if needed.",
               }
-            )
-            .setImage("https://cdn.discordapp.com/attachments/1095363097113399376/1095363463095795832/crypto.gif"),
+            ),
         ],
       });
       interaction.channel.send({
