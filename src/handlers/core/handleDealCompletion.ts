@@ -9,7 +9,8 @@ import { MessageService } from "@/src/helpers/services/Message";
 
 export const handleDealCompletion = (
   channel: TextChannel,
-  identification: Identification
+  identification: Identification,
+  administerRoles: boolean = true
 ): Effect.Effect<never, unknown, void> => {
   return Effect.gen(function* (_) {
     yield* _(
@@ -27,11 +28,13 @@ export const handleDealCompletion = (
         ],
       })
     );
-    yield* _(
-      Effect.forEach([identification.SENDER.id, identification.RECEIVER.id], (id) =>
-        MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
-      )
-    );
-    yield* _(MessageService.send(channel as TextChannel, "$close", "5 minutes"));
+    if (administerRoles) {
+      yield* _(
+        Effect.forEach([identification.SENDER.id, identification.RECEIVER.id], (id) =>
+          MemberService.addRole(channel.guild, process.env.CLIENT_ROLE_ID ?? "", id)
+        )
+      );
+    }
+    yield* _(MessageService.send(channel as TextChannel, "$close", "2 minutes"));
   });
 };

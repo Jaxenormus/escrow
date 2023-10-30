@@ -24,16 +24,12 @@ export default function handleCrypto(channel: TextChannel, medium: TradeMediums)
       yield* _(handleDeposit(channel, identification, medium, amount, address));
       yield* _(container.api.statistics.trackCrypto(channel, medium, amount));
       const verdict = yield* _(handleDealConfirmation(channel, identification, medium));
-      if (verdict === "RELEASE") {
-        const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Receiver));
-        const releaseEither = yield* _(
-          Effect.either(handleRelease(channel, identification, TradeParties.Receiver, medium, address, toAddress))
-        );
-        if (Either.isRight(releaseEither)) yield* _(handleDealCompletion(channel, identification));
-      } else if (verdict === "RETURN") {
-        const toAddress = yield* _(handleAddressCollection(channel, identification, medium, TradeParties.Sender));
-        yield* _(handleRelease(channel, identification, TradeParties.Sender, medium, address, toAddress));
-      }
+      const releaseParty = verdict === "RELEASE" ? TradeParties.Receiver : TradeParties.Sender;
+      const releaseAddress = yield* _(handleAddressCollection(channel, identification, medium, releaseParty));
+      const releaseEither = yield* _(
+        Effect.either(handleRelease(channel, identification, releaseParty, medium, address, releaseAddress))
+      );
+      if (Either.isRight(releaseEither)) yield* _(handleDealCompletion(channel, identification));
     })
   );
 }
