@@ -4,7 +4,7 @@ import { Effect } from "effect";
 
 import { InteractionService } from "@/src/helpers/services/Interaction";
 
-export default class ReleaseCryptoCommand extends Command {
+export default class RecoverCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {
     super(context, {
       ...options,
