@@ -83,6 +83,17 @@ export class BotClient extends SapphireClient {
       profilesSampleRate: 1.0,
       release: process.env.RENDER ? process.env.RENDER_GIT_COMMIT : "local",
       environment: container.environment,
+      beforeSend: (event, hint) => {
+        if (hint && hint.originalException && hint.originalException instanceof AxiosError) {
+          if (hint.originalException.response && hint.originalException.response.data) {
+            const contexts = { ...event.contexts };
+            contexts.errorResponse = { data: hint.originalException.response.data };
+            event.contexts = contexts;
+          }
+        }
+
+        return event;
+      },
     });
     container.assets = { crypto: cryptoAssets };
     container.events = { ticket: ticketEmitter };
