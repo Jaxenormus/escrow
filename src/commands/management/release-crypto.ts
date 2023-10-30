@@ -2,6 +2,7 @@ import type { ChatInputCommand } from "@sapphire/framework";
 import { Command, container } from "@sapphire/framework";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, inlineCode } from "discord.js";
 import { Effect, Either } from "effect";
+import { toString } from "lodash";
 
 import { TradeMediums } from "@/src/config";
 import { findHashUrl } from "@/src/helpers/crypto/findHashUrl";
@@ -67,7 +68,7 @@ export default class ReleaseCryptoCommand extends Command {
               );
             } else {
               yield* _(
-                InteractionService.followUp(interaction, `Error releasing funds: ${releaseEither.left.message}`)
+                InteractionService.followUp(interaction, `Error releasing funds: ${toString(releaseEither.left.error)}`)
               );
             }
           } else {

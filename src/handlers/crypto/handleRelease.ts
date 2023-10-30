@@ -3,7 +3,7 @@ import { container } from "@sapphire/framework";
 import type { TextChannel } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, codeBlock } from "discord.js";
 import { Effect, Either } from "effect";
-import { toLower } from "lodash";
+import { toLower, toString } from "lodash";
 
 import { CryptoConfirmations, EmbedColors, type TradeParties } from "@/src/config";
 import type { TradeMediums } from "@/src/config";
@@ -45,7 +45,7 @@ export default function handleRelease(
           ],
         })
       );
-      yield* _(waitForConfirmation(channel,medium, hashEither.right, CryptoConfirmations[medium]));
+      yield* _(waitForConfirmation(channel, medium, hashEither.right, CryptoConfirmations[medium]));
       yield* _(MessageService.delete(message));
       yield* _(
         MessageService.send(channel, {
@@ -71,7 +71,7 @@ export default function handleRelease(
               .setDescription(
                 `An error occurred while attempting to release your ${toLower(
                   medium
-                )}. Please contact a staff member for help.\n${codeBlock(hashEither.left.message)}`
+                )}. Please contact a staff member for help.\n${codeBlock(toString(hashEither.left.error))}`
               )
               .setColor(EmbedColors.Error)
               .setThumbnail(container.assets.crypto[medium].failed.name),
