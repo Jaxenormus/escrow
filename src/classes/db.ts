@@ -1,17 +1,15 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { container } from "@sapphire/pieces";
 import { Effect } from "effect";
-import { z } from "zod";
 
 import { PrismaError } from "@/src/errors/PrismaError";
 
-const ticketMetadataSchema = z.object({
-  crypto: z.object({
-    addresses: z.object({ sender: z.string(), receiver: z.string() }),
-    anticipated: z.object({ raw_crypto: z.number(), raw_fiat: z.number() }),
-    actual: z.object({ raw_crypto: z.number(), raw_fiat: z.number() }),
-  }),
-});
+// const ticketMetadataSchema = z.object({
+//   crypto: z.object({
+//     addresses: z.object({ sender: z.string(), receiver: z.string() }),
+//     anticipated: z.object({ raw_crypto: z.number(), raw_fiat: z.number() }),
+//     actual: z.object({ raw_crypto: z.number(), raw_fiat: z.number() }),
+//   }),
+// });
 
 export class DB {
   public readonly prisma: PrismaClient;
@@ -38,7 +36,7 @@ export class DB {
     return Effect.tryPromise({
       try: () => this.prisma.address.create({ data }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {
@@ -52,7 +50,7 @@ export class DB {
     return Effect.tryPromise({
       try: () => this.prisma.address.findFirst({ where }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {

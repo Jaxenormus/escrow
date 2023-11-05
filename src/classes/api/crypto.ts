@@ -105,18 +105,42 @@ export class CryptoApi {
 
   private createBaseInstance(options?: AxiosRequestConfig) {
     const instance = axios.create(options);
-    instance.interceptors.response.use((response) => {
-      const log = response.status === 200 ? container.log.info : container.log.error;
-      log(`[${response.request.host}] [${response.request.method}] [${response.status}] ${response.config.url}`, {
-        response: { status: response.status, body: response.data, headers: response.headers },
-        request: {
-          method: response.request.method,
-          url: `${response.request.res.responseUrl}`,
-          body: response.config.data,
-        },
-      });
-      return response;
-    });
+    instance.interceptors.response.use(
+      (response) => {
+        container.log.info(
+          `[${response.request.host}] [${response.request.method}] [${response.status}] ${response.config.url}`,
+          {
+            response: { status: response.status, body: response.data, headers: response.headers },
+            request: {
+              method: response.request.method,
+              url: `${response.request.res.responseUrl}`,
+              body: response.config.data,
+            },
+          }
+        );
+        return response;
+      },
+      (error) => {
+        if (error instanceof AxiosError) {
+          container.log.error(
+            `[${error.request.host}] [${error.request.method}] [${error.response?.status}] ${error.config?.url}`,
+            {
+              response: {
+                status: error.response?.status,
+                body: error.response?.data,
+                headers: error.response?.headers,
+              },
+              request: {
+                method: error.request.method,
+                url: `${error.request.res.responseUrl}`,
+                body: error.config?.data,
+              },
+            }
+          );
+        }
+        throw error;
+      }
+    );
     axiosRetry(instance, {
       retries: 5,
       retryDelay(retryCount, error) {
