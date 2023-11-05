@@ -8,6 +8,7 @@ import { toString } from "lodash";
 
 import { TradeMediums } from "@/src/config";
 import { CryptoConfirmations, EmbedColors, TradeParties } from "@/src/config";
+import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
 import handleAddressCollection from "@/src/handlers/crypto/handleAddressCollection";
@@ -26,7 +27,7 @@ export const handleDeposit = (
   medium: TradeMediums,
   amount: CryptoDealAmount,
   address: Address
-) => {
+): Effect.Effect<never, ExpectedExecutionError | Error, void> => {
   return Effect.gen(function* (_) {
     const mediumAssets = container.assets.crypto[medium];
     yield* _(
@@ -274,34 +275,64 @@ export const handleDeposit = (
       }
     }
 
-    yield* _(waitForConfirmation(channel, medium, transactionHash, CryptoConfirmations[medium]));
-    const hash = yield* _(container.api.crypto.getHashInfo(medium, transactionHash));
+    const confirmationEither = yield* _(
+      Effect.either(waitForConfirmation(channel, medium, transactionHash, CryptoConfirmations[medium]))
+    );
+
     yield* _(pipe(Ref.get(messagesToDeleteRef), Effect.flatMap(MessageService.batchDelete)));
 
-    yield* _(
-      MessageService.send(channel, {
-        content: ids.SENDER.mention,
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("Payment has been received.")
-            .setDescription("The payment has been received and reached the required amount of confirmations.")
-            .addFields([
-              { name: "Confirmations Reached", value: hash.data.confirmations.toString(), inline: true },
-              { name: "Amount Received ", value: formattedAmountReceived, inline: true },
-            ])
-            .setColor(EmbedColors.Success)
-            .setThumbnail(mediumAssets.confirmed.name),
-        ],
-        files: [mediumAssets.confirmed.attachment],
-        components: [
-          new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-              .setLabel("View Transaction")
-              .setStyle(ButtonStyle.Link)
-              .setURL(findHashUrl(medium, transactionHash))
-          ),
-        ],
-      })
-    );
+    if (Either.right(confirmationEither)) {
+      const hash = yield* _(container.api.crypto.getHashInfo(medium, transactionHash));
+      yield* _(
+        MessageService.send(channel, {
+          content: ids.SENDER.mention,
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("Payment has been received.")
+              .setDescription("The payment has been received and reached the required amount of confirmations.")
+              .addFields([
+                { name: "Confirmations Reached", value: hash.data.confirmations.toString(), inline: true },
+                { name: "Amount Received ", value: formattedAmountReceived, inline: true },
+              ])
+              .setColor(EmbedColors.Success)
+              .setThumbnail(mediumAssets.confirmed.name),
+          ],
+          files: [mediumAssets.confirmed.attachment],
+          components: [
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+              new ButtonBuilder()
+                .setLabel("View Transaction")
+                .setStyle(ButtonStyle.Link)
+                .setURL(findHashUrl(medium, transactionHash))
+            ),
+          ],
+        })
+      );
+    } else {
+      yield* _(
+        MessageService.send(channel, {
+          content: ids.SENDER.mention,
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("Failed to validate transaction")
+              .setDescription(
+                "The transaction the bot previously detected has failed to validate. This is most likely due to the transaction being replaced or double spent. Please resend the transaction or contact a staff member for assistance."
+              )
+              .setColor(EmbedColors.Error)
+              .setThumbnail(mediumAssets.failed.name),
+          ],
+          files: [mediumAssets.failed.attachment],
+          components: [
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+              new ButtonBuilder()
+                .setLabel("View Transaction")
+                .setStyle(ButtonStyle.Link)
+                .setURL(findHashUrl(medium, transactionHash))
+            ),
+          ],
+        })
+      );
+      return yield* _(handleDeposit(channel, ids, medium, amount, address));
+    }
   });
 };
