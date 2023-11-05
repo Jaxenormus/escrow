@@ -105,6 +105,18 @@ export class CryptoApi {
 
   private createBaseInstance(options?: AxiosRequestConfig) {
     const instance = axios.create(options);
+    instance.interceptors.response.use((response) => {
+      const log = response.status === 200 ? container.log.info : container.log.error;
+      log(`[${response.request.host}] [${response.request.method}] [${response.status}] ${response.config.url}`, {
+        response: { status: response.status, body: response.data, headers: response.headers },
+        request: {
+          method: response.request.method,
+          url: `${response.request.res.responseUrl}`,
+          body: response.config.data,
+        },
+      });
+      return response;
+    });
     axiosRetry(instance, {
       retries: 5,
       retryDelay(retryCount, error) {
@@ -135,7 +147,7 @@ export class CryptoApi {
     return Effect.tryPromise({
       try: () => this.coinmarketcap.get<CoinMarketPriceConversionResponse>("/tools/price-conversion", { params }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           const error = unknown as AxiosError<CoinMarketCapError>;
           return new CoinMarketCapApiError(error.response?.data.status.error_message);
@@ -171,7 +183,7 @@ export class CryptoApi {
           { params: { bech32: medium === TradeMediums.Bitcoin } }
         ),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           return new AddressGenerationError(unknown.message);
         } else {
@@ -199,7 +211,7 @@ export class CryptoApi {
           outputs: [{ addresses: [destination], value: -1 }],
         }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
         } else {
@@ -218,7 +230,7 @@ export class CryptoApi {
               };
             },
             catch: (unknown) => {
-              container.sentry.captureException(unknown);
+              // container.sentry.captureException(unknown);
               return new GenericError(unknown);
             },
           });
@@ -233,7 +245,7 @@ export class CryptoApi {
               signatures: signatures.map((signature) => signature.signature),
             }),
           catch: (unknown) => {
-            container.sentry.captureException(unknown);
+            // container.sentry.captureException(unknown);
             if (unknown instanceof AxiosError) {
               return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
             } else {
@@ -253,7 +265,7 @@ export class CryptoApi {
           params: { limit: "999" },
         }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
         } else {
@@ -267,7 +279,7 @@ export class CryptoApi {
     return Effect.tryPromise({
       try: () => this.createBlockCypherInstance(medium).get<BlockCypherHashInfoResponse>(`/addrs/${address}`),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
         } else {
@@ -284,7 +296,7 @@ export class CryptoApi {
           params: { limit: "50" },
         }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
         } else {
@@ -302,7 +314,7 @@ export class CryptoApi {
           amount: parseInt(amount),
         }),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           return new BlockCypherApiError(unknown.response?.data.error ?? unknown.message);
         } else {

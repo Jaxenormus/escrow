@@ -1,4 +1,3 @@
-import { container } from "@sapphire/pieces";
 import type {
   GuildChannel,
   GuildChannelOverwriteOptions,
@@ -23,7 +22,7 @@ export class ChannelService {
     return Effect.tryPromise({
       try: () => channel.permissionOverwrites.edit(userOrRole, options, overwriteOptions),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof DiscordAPIError) {
           return new ChannelServiceError(unknown.message, "overridePermissions");
         } else {
@@ -39,7 +38,7 @@ export class ChannelService {
         Effect.tryPromise({
           try: () => channel.delete(),
           catch: (unknown) => {
-            container.sentry.captureException(unknown);
+            // container.sentry.captureException(unknown);
             if (unknown instanceof DiscordAPIError) {
               return new ChannelServiceError(unknown.message, "delete");
             } else {

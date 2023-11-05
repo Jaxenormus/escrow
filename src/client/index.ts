@@ -1,7 +1,6 @@
+import { Logtail } from "@logtail/node";
 import { PrismaClient } from "@prisma/client";
 import { container, SapphireClient } from "@sapphire/framework";
-import * as Sentry from "@sentry/node";
-import { AxiosError } from "axios";
 import { AttachmentBuilder, GatewayIntentBits } from "discord.js";
 import { toLower } from "lodash";
 import path from "path";
@@ -61,42 +60,9 @@ export class BotClient extends SapphireClient {
       crypto: new CryptoApi(container.db),
       statistics: new StatisticsApi(),
     };
-    container.sentry = {
-      ...Sentry,
-      captureException: (exception: unknown): string => {
-        if (container.environment === "production") {
-          this.logger.debug(exception);
-          return Sentry.captureException(exception);
-        } else {
-          if (exception instanceof AxiosError) {
-            this.logger.error(exception.response?.data);
-          } else {
-            this.logger.error(exception);
-          }
-          return "handled";
-        }
-      },
-    };
-    container.sentry.init({
-      dsn: "https://6baa8ee4eb3fb913ad57f78ab09f0185@o4505564155609088.ingest.sentry.io/4505936432594944",
-      tracesSampleRate: 1.0,
-      profilesSampleRate: 1.0,
-      release: process.env.RENDER ? process.env.RENDER_GIT_COMMIT : "local",
-      environment: container.environment,
-      beforeSend: (event, hint) => {
-        if (hint && hint.originalException && hint.originalException instanceof AxiosError) {
-          if (hint.originalException.response && hint.originalException.response.data) {
-            const contexts = { ...event.contexts };
-            contexts.errorResponse = { data: hint.originalException.response.data };
-            event.contexts = contexts;
-          }
-        }
-
-        return event;
-      },
-    });
     container.assets = { crypto: cryptoAssets };
     container.events = { ticket: ticketEmitter };
+    container.log = new Logtail(process.env.LOGTAIL_TOKEN as string);
     return super.login(token);
   }
 
@@ -111,10 +77,10 @@ declare module "@sapphire/pieces" {
     db: DB;
     prisma: PrismaClient;
     api: { crypto: CryptoApi; statistics: StatisticsApi };
-    sentry: typeof Sentry;
     assets: { crypto: typeof cryptoAssets };
     environment: "production" | "development";
     events: { ticket: typeof ticketEmitter };
+    log: Logtail;
   }
 }
 

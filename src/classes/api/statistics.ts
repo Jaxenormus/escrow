@@ -41,7 +41,7 @@ export class StatisticsApi {
     return Effect.tryPromise({
       try: () => this.logsnag.post("/log", body),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           const error = unknown as AxiosError;
           return new LogSnagApiError(error.response?.data);

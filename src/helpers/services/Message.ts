@@ -1,4 +1,3 @@
-import { container } from "@sapphire/pieces";
 import type { Message, MessageEditOptions } from "discord.js";
 import { DiscordAPIError, type TextChannel, type MessageCreateOptions, type MessagePayload } from "discord.js";
 import { Effect } from "effect";
@@ -14,7 +13,7 @@ export class MessageService {
         Effect.tryPromise({
           try: () => channel.send(data),
           catch: (unknown) => {
-            container.sentry.captureException(unknown);
+            // container.sentry.captureException(unknown);
             if (unknown instanceof DiscordAPIError) {
               return new MessageServiceError(unknown.message, "delete");
             } else {
@@ -30,7 +29,7 @@ export class MessageService {
     return Effect.tryPromise({
       try: () => message.edit(data),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof DiscordAPIError) {
           return new MessageServiceError(unknown.message, "delete");
         } else {
@@ -48,7 +47,7 @@ export class MessageService {
           Effect.tryPromise({
             try: () => message.delete(),
             catch: (unknown) => {
-              container.sentry.captureException(unknown);
+              // container.sentry.captureException(unknown);
               if (unknown instanceof DiscordAPIError) {
                 return new MessageServiceError(unknown.message, "delete");
               } else {
@@ -69,7 +68,7 @@ export class MessageService {
     return Effect.tryPromise({
       try: () => message.reply(data),
       catch: (unknown) => {
-        container.sentry.captureException(unknown);
+        // container.sentry.captureException(unknown);
         if (unknown instanceof DiscordAPIError) {
           return new MessageServiceError(unknown.message, "delete");
         } else {
