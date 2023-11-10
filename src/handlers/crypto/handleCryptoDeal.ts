@@ -24,7 +24,7 @@ export default function handleCrypto(channel: TextChannel, medium: TradeMediums)
       yield* _(handleDeposit(channel, identification, medium, amount, address));
       yield* _(container.api.statistics.trackCrypto(channel, medium, amount));
       const verdict = yield* _(handleDealConfirmation(channel, identification, medium));
-      if (verdict === "RELEASE" || verdict === "CANCEL") {
+      if (verdict === "RELEASE" || verdict === "RETURN") {
         const releaseParty = verdict === "RELEASE" ? TradeParties.Receiver : TradeParties.Sender;
         const releaseAddress = yield* _(handleAddressCollection(channel, identification, medium, releaseParty));
         const releaseEither = yield* _(
