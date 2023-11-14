@@ -48,6 +48,7 @@ services:
     name: middleman-redis
     plan: starter
     region: oregon
+    ipAllowList: []
 databases:
   - name: middleman-db
     plan: starter
