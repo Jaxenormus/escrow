@@ -4,8 +4,8 @@ import { Effect } from "effect";
 
 import { EmbedColors } from "@/src/config";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
-import { MemberService } from "@/src/helpers/services/Member";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MemberService } from "@/src/services/Member";
+import { MessageService } from "@/src/services/Message";
 
 export const handleDealCompletion = (
   channel: TextChannel,

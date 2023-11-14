@@ -8,7 +8,7 @@ import { EmbedColors } from "@/src/config";
 import type { TradeMediums } from "@/src/config";
 import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 
 export function handleAddressGeneration(
   channel: TextChannel,

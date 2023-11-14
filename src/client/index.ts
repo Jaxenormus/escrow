@@ -7,9 +7,9 @@ import { toLower } from "lodash";
 import path from "path";
 import { EventEmitter } from "stream";
 
-import { CryptoApi } from "@/src/classes/api/crypto";
-import { StatisticsApi } from "@/src/classes/api/statistics";
-import { DB } from "@/src/classes/db";
+import { CryptoService } from "@/src/services/Crypto";
+import { InternalStatisticsService } from "@/src/services/Statistics";
+import { PrismaService } from "@/src/services/Prisma";
 import { TradeMediums } from "@/src/config";
 import { SimplifiedTradeMediums } from "@/src/config";
 
@@ -66,10 +66,10 @@ export class BotClient extends SapphireClient {
   public override async login(token: string) {
     container.environment = process.env.NODE_ENV === "production" || process.env.RENDER ? "production" : "development";
     container.prisma = new PrismaClient();
-    container.db = new DB(container.prisma);
+    container.db = new PrismaService(container.prisma);
     container.api = {
-      crypto: new CryptoApi(container.db),
-      statistics: new StatisticsApi(),
+      crypto: new CryptoService(container.db),
+      statistics: new InternalStatisticsService(),
     };
     container.assets = { crypto: cryptoAssets };
     container.events = { ticket: ticketEmitter };
@@ -85,9 +85,9 @@ export class BotClient extends SapphireClient {
 
 declare module "@sapphire/pieces" {
   interface Container {
-    db: DB;
+    db: PrismaService;
     prisma: PrismaClient;
-    api: { crypto: CryptoApi; statistics: StatisticsApi };
+    api: { crypto: CryptoService; statistics: InternalStatisticsService };
     assets: { crypto: typeof cryptoAssets };
     environment: "production" | "development";
     events: { ticket: typeof ticketEmitter };

@@ -11,7 +11,7 @@ import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { findAddressUrl } from "@/src/helpers/crypto/findAddressUrl";
 import { listenForMessages } from "@/src/helpers/listenForMessages";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 
 export default function handleAddressCollection(
   channel: TextChannel,

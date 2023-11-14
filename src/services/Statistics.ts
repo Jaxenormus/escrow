@@ -11,7 +11,7 @@ import { SimplifiedTradeMediums } from "@/src/config";
 import { LogSnagApiError } from "@/src/errors/LogSnagApiError";
 import type { CryptoDealAmount } from "@/src/handlers/crypto/handleAmountSelection";
 
-export class StatisticsApi {
+export class InternalStatisticsService {
   private createBaseInstance(options?: AxiosRequestConfig) {
     const instance = axios.create(options);
     axiosRetry(instance, {
@@ -61,10 +61,10 @@ export class StatisticsApi {
       action === "create"
         ? "Ticket Created"
         : action === "invite"
-        ? "Participant Invited to Ticket"
-        : action === "role-selection"
-        ? "Exchange Roles Selected"
-        : "Exchange Amount Selected";
+          ? "Participant Invited to Ticket"
+          : action === "role-selection"
+            ? "Exchange Roles Selected"
+            : "Exchange Amount Selected";
     return this.callLogSnagApi({
       project: "escrow",
       channel: "tickets",

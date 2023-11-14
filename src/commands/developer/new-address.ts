@@ -4,7 +4,7 @@ import type { TextChannel } from "discord.js";
 import { Effect, Either } from "effect";
 
 import { TradeMediums } from "@/src/config";
-import { InteractionService } from "@/src/helpers/services/Interaction";
+import { InteractionService } from "@/src/services/Interaction";
 
 export default class NewAddressCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {

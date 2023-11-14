@@ -12,7 +12,7 @@ import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { fiatFormat } from "@/src/helpers/fiatFormat";
 import { listenForMessages } from "@/src/helpers/listenForMessages";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 
 export type CryptoDealAmount = { raw_crypto: number; crypto: string; raw_fiat: number; fiat: string };
 

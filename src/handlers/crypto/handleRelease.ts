@@ -10,7 +10,7 @@ import type { TradeMediums } from "@/src/config";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { findHashUrl } from "@/src/helpers/crypto/findHashUrl";
 import { waitForConfirmation } from "@/src/helpers/crypto/waitForConfirmation";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 
 export default function handleRelease(
   channel: TextChannel,

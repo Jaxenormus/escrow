@@ -5,7 +5,7 @@ import { Effect, Ref } from "effect";
 import { EmbedColors, Interactions } from "@/src/config";
 import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import { listenForInteractions } from "@/src/helpers/listenForInteractions";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 import AdminOnlyPrecondition from "@/src/preconditions/roles/adminOnly";
 
 export function promptQuestion(

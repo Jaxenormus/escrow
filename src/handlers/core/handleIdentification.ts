@@ -6,8 +6,8 @@ import type { TradeMediums } from "@/src/config";
 import { EmbedColors, Interactions, TradeParties } from "@/src/config";
 import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
-import { InteractionService } from "@/src/helpers/services/Interaction";
-import { MessageService } from "@/src/helpers/services/Message";
+import { InteractionService } from "@/src/services/Interaction";
+import { MessageService } from "@/src/services/Message";
 import AdminOnlyPrecondition from "@/src/preconditions/roles/adminOnly";
 
 import { listenForInteractions } from "../../helpers/listenForInteractions";

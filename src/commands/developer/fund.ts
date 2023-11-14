@@ -5,7 +5,7 @@ import sb from "satoshi-bitcoin";
 import web3 from "web3";
 
 import { TradeMediums } from "@/src/config";
-import { InteractionService } from "@/src/helpers/services/Interaction";
+import { InteractionService } from "@/src/services/Interaction";
 
 export default class FundCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {

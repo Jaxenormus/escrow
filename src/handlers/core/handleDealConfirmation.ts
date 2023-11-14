@@ -6,8 +6,8 @@ import type { TradeMediums } from "@/src/config";
 import { EmbedColors, SimplifiedTradeMediums } from "@/src/config";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
-import { MemberService } from "@/src/helpers/services/Member";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MemberService } from "@/src/services/Member";
+import { MessageService } from "@/src/services/Message";
 
 type ConfirmationVerdict = "RELEASE" | "RETURN" | "CANCEL" | "RESTART";
 

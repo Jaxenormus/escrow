@@ -3,7 +3,7 @@ import { Command } from "@sapphire/framework";
 import type { TextChannel } from "discord.js";
 import { Effect } from "effect";
 
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 
 export default class RenameCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {

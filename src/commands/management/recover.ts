@@ -2,7 +2,7 @@ import type { ChatInputCommand } from "@sapphire/framework";
 import { Command, container } from "@sapphire/framework";
 import { Effect } from "effect";
 
-import { InteractionService } from "@/src/helpers/services/Interaction";
+import { InteractionService } from "@/src/services/Interaction";
 
 export default class RecoverCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {

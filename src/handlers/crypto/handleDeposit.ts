@@ -19,7 +19,7 @@ import { validateHash } from "@/src/helpers/crypto/validateHash";
 import { waitForConfirmation } from "@/src/helpers/crypto/waitForConfirmation";
 import { fiatFormat } from "@/src/helpers/fiatFormat";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
-import { MessageService } from "@/src/helpers/services/Message";
+import { MessageService } from "@/src/services/Message";
 import { clearInactivityTasks } from "@/src/helpers/tasks/clearInactivityTasks";
 
 export const handleDeposit = (

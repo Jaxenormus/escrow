@@ -7,7 +7,7 @@ import axiosRetry from "axios-retry";
 import type { TextChannel } from "discord.js";
 import { Effect } from "effect";
 
-import type { DB } from "@/src/classes/db";
+import type { PrismaService } from "@/src/services/Prisma";
 import { SimplifiedTradeMediums, TradeMediums } from "@/src/config";
 import { AddressGenerationError } from "@/src/errors/AddressGenerationError";
 import { BlockCypherApiError } from "@/src/errors/BlockCypherApiError";
@@ -96,11 +96,11 @@ export interface BlockCypherFaucetResponse {
   tx_ref: string;
 }
 
-export class CryptoApi {
-  private readonly db: DB;
+export class CryptoService {
+  private readonly prisma: PrismaService;
 
-  constructor(db: DB) {
-    this.db = db;
+  constructor(prisma: PrismaService) {
+    this.prisma = prisma;
   }
 
   private createBaseInstance(options?: AxiosRequestConfig) {
@@ -216,7 +216,7 @@ export class CryptoApi {
       },
     }).pipe(
       Effect.flatMap((response) =>
-        this.db.createAddress({
+        this.prisma.createAddress({
           id: channel.id,
           data: response.data.address,
           private: response.data.private,

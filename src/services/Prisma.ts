@@ -3,7 +3,7 @@ import { Effect } from "effect";
 
 import { PrismaError } from "@/src/errors/PrismaError";
 
-export class DB {
+export class PrismaService {
   public readonly prisma: PrismaClient;
 
   public constructor(prisma: PrismaClient) {

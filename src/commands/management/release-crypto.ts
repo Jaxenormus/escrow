@@ -6,7 +6,7 @@ import { toString } from "lodash";
 
 import { TradeMediums } from "@/src/config";
 import { findHashUrl } from "@/src/helpers/crypto/findHashUrl";
-import { InteractionService } from "@/src/helpers/services/Interaction";
+import { InteractionService } from "@/src/services/Interaction";
 
 export default class ReleaseCryptoCommand extends Command {
   public constructor(context: Command.Context, options: Command.Options) {
