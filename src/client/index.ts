@@ -7,11 +7,11 @@ import { toLower } from "lodash";
 import path from "path";
 import { EventEmitter } from "stream";
 
-import { CryptoService } from "@/src/services/Crypto";
-import { InternalStatisticsService } from "@/src/services/Statistics";
-import { PrismaService } from "@/src/services/Prisma";
 import { TradeMediums } from "@/src/config";
 import { SimplifiedTradeMediums } from "@/src/config";
+import { CryptoService } from "@/src/services/Crypto";
+import { PrismaService } from "@/src/services/Prisma";
+import { InternalStatisticsService } from "@/src/services/Statistics";
 
 const buildCryptoAsset = (data: string) => {
   const buildTuple = (name: string) => {
@@ -53,10 +53,8 @@ export class BotClient extends SapphireClient {
       tasks: {
         bull: {
           connection: {
-            port: 6379, // Defaults to 6379, but if your Redis server runs on another port configure it here
-            // password: "very-strong-password", // If your Redis server requires a password configure it here
-            host: "localhost", // The host at which the redis server is found
-            // db: 2, // Redis database number, defaults to 0 but can be any value between 0 and 15
+            port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
+            host: process.env.REDIS_HOST ?? "localhost",
           },
         },
       },

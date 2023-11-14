@@ -34,6 +34,20 @@ services:
         fromDatabase:
           name: middleman-db
           property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: middleman-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: middleman-redis
+          property: port
+  - type: redis
+    name: middleman-redis
+    plan: starter
+    region: oregon
 databases:
   - name: middleman-db
     plan: starter
