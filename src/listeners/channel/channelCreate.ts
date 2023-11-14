@@ -27,7 +27,7 @@ export default class ChannelCreateListener extends Listener {
   }
 
   public async run(channel: GuildChannel) {
-    return Effect.runSync(
+    return Effect.runPromise(
       Effect.gen(function* (_) {
         const matches = channel.name.match(/^(.+)-([0-9]+)$/);
         if (!isNil(matches) && channel.isTextBased() && channel.type === ChannelType.GuildText) {

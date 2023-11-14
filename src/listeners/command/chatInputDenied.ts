@@ -12,8 +12,8 @@ export default class ChatInputCommandDeniedListener extends Listener {
     });
   }
 
-  public run(error: UserError, { interaction }: ChatInputCommandDeniedPayload) {
-    return Effect.runSync(
+  public async run(error: UserError, { interaction }: ChatInputCommandDeniedPayload) {
+    return Effect.runPromise(
       Effect.gen(function* (_) {
         yield* _(InteractionService.followUp(interaction, { content: error.message }));
       })
