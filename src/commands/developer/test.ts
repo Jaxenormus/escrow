@@ -1,6 +1,5 @@
 import type { ChatInputCommand } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
-import { Effect } from "effect";
 
 
 export default class TestCommand extends Command {
@@ -20,12 +19,14 @@ export default class TestCommand extends Command {
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     if (interaction.channel && interaction.channel.isTextBased() && interaction.inGuild()) {
       await interaction.deferReply({ ephemeral: true });
-      await Effect.runPromise(
-        Effect.gen(function* (_) {
-          if (interaction.channel && interaction.channel.isTextBased()) {
-          }
-        })
-      );
+      // const task = await scheduleInactivityTask(interaction.channel as TextChannel);
+      // console.log(task);
+      // await Effect.runPromise(
+      //   Effect.gen(function* (_) {
+      //     if (interaction.channel && interaction.channel.isTextBased()) {
+      //     }
+      //   })
+      // );
     }
   }
 }

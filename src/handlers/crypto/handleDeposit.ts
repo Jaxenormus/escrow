@@ -20,6 +20,7 @@ import { waitForConfirmation } from "@/src/helpers/crypto/waitForConfirmation";
 import { fiatFormat } from "@/src/helpers/fiatFormat";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
 import { MessageService } from "@/src/helpers/services/Message";
+import { clearInactivityTasks } from "@/src/helpers/tasks/clearInactivityTasks";
 
 export const handleDeposit = (
   channel: TextChannel,
@@ -114,6 +115,7 @@ export const handleDeposit = (
     );
 
     container.events.ticket.off(channel.id, callback);
+    yield* _(clearInactivityTasks(channel));
 
     const rawAmountReceived = yield* _(Ref.get(rawAmountReceivedRef));
     const transactionHash = yield* _(Ref.get(transactionHashRef));

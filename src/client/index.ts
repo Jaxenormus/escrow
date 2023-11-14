@@ -1,6 +1,7 @@
 import { Logtail } from "@logtail/node";
 import { PrismaClient } from "@prisma/client";
 import { container, SapphireClient } from "@sapphire/framework";
+import "@sapphire/plugin-scheduled-tasks";
 import { AttachmentBuilder, GatewayIntentBits } from "discord.js";
 import { toLower } from "lodash";
 import path from "path";
@@ -49,6 +50,16 @@ export class BotClient extends SapphireClient {
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.MessageContent,
       ],
+      tasks: {
+        bull: {
+          connection: {
+            port: 6379, // Defaults to 6379, but if your Redis server runs on another port configure it here
+            // password: "very-strong-password", // If your Redis server requires a password configure it here
+            host: "localhost", // The host at which the redis server is found
+            // db: 2, // Redis database number, defaults to 0 but can be any value between 0 and 15
+          },
+        },
+      },
     });
   }
 

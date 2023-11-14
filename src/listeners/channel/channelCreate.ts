@@ -16,6 +16,7 @@ import { ChannelService } from "@/src/helpers/services/Channel";
 import { InteractionService } from "@/src/helpers/services/Interaction";
 import { MemberService } from "@/src/helpers/services/Member";
 import { MessageService } from "@/src/helpers/services/Message";
+import { scheduleInactivityTask } from "@/src/helpers/tasks/scheduleInactivityTask";
 
 export default class ChannelCreateListener extends Listener {
   public constructor(context: Listener.Context, options: Listener.Options) {
@@ -28,6 +29,7 @@ export default class ChannelCreateListener extends Listener {
   public async run(channel: GuildChannel) {
     const matches = channel.name.match(/^(.+)-([0-9]+)$/);
     if (!isNil(matches) && channel.isTextBased() && channel.type === ChannelType.GuildText) {
+      await Effect.runPromise(scheduleInactivityTask(channel));
       const medium = TradeMediums[startCase(matches[1].replace("-", "_")) as unknown as keyof typeof TradeMediums];
       if (medium) {
         await Effect.runPromise(this.container.api.statistics.trackTicketAction(channel, medium, "create"));

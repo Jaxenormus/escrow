@@ -1,3 +1,4 @@
+import "@sapphire/plugin-scheduled-tasks/register";
 import * as dotenv from "dotenv";
 import path from "path";
 

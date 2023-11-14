@@ -3,34 +3,12 @@ import { Effect } from "effect";
 
 import { PrismaError } from "@/src/errors/PrismaError";
 
-// const ticketMetadataSchema = z.object({
-//   crypto: z.object({
-//     addresses: z.object({ sender: z.string(), receiver: z.string() }),
-//     anticipated: z.object({ raw_crypto: z.number(), raw_fiat: z.number() }),
-//     actual: z.object({ raw_crypto: z.number(), raw_fiat: z.number() }),
-//   }),
-// });
-
 export class DB {
   public readonly prisma: PrismaClient;
 
   public constructor(prisma: PrismaClient) {
     this.prisma = prisma;
   }
-
-  // public findTicket(channel: TextChannel, include: Prisma.TicketInclude) {
-  //   return Effect.tryPromise({
-  //     try: () => this.prisma.ticket.findFirst({ where: { id: channel.id }, include }),
-  //     catch: (unknown) => {
-  //       container.sentry.captureException(unknown);
-  //       if (unknown instanceof Error) {
-  //         return new PrismaError(unknown.message);
-  //       } else {
-  //         return new PrismaError(unknown);
-  //       }
-  //     },
-  //   });
-  // }
 
   public createAddress(data: Prisma.AddressCreateInput) {
     return Effect.tryPromise({
@@ -60,53 +38,45 @@ export class DB {
     });
   }
 
-  // public createTicket(data: Prisma.TicketCreateInput) {
-  //   return Effect.tryPromise({
-  //     try: () => this.prisma.ticket.create({ data }),
-  //     catch: (unknown) => {
-  //       container.sentry.captureException(unknown);
-  //       if (unknown instanceof Error) {
-  //         return new PrismaError(unknown.message);
-  //       } else {
-  //         return new PrismaError(unknown);
-  //       }
-  //     },
-  //   });
-  // }
+  public createJob(data: Prisma.JobCreateInput) {
+    return Effect.tryPromise({
+      try: () => this.prisma.job.create({ data }),
+      catch: (unknown) => {
+        // container.sentry.captureException(unknown);
+        if (unknown instanceof Error) {
+          return new PrismaError(unknown.message);
+        } else {
+          return new PrismaError(unknown);
+        }
+      },
+    });
+  }
 
-  // public editTicketMetadata(channel: TextChannel, metadata: z.infer<typeof ticketMetadataSchema>) {
-  //   return Effect.tryPromise({
-  //     try: async () => {
-  //       const ticket = await Effect.runPromise(this.findTicket(channel, {}));
-  //       const rawOldMetadata = ticketMetadataSchema.safeParse(ticket?.metadata);
-  //       const oldMetadata = rawOldMetadata.success ? rawOldMetadata.data : {};
-  //       return this.prisma.ticket.update({
-  //         where: { id: channel.id },
-  //         data: { metadata: merge(oldMetadata, metadata) },
-  //       });
-  //     },
-  //     catch: (unknown) => {
-  //       container.sentry.captureException(unknown);
-  //       if (unknown instanceof Error) {
-  //         return new PrismaError(unknown.message);
-  //       } else {
-  //         return new PrismaError(unknown);
-  //       }
-  //     },
-  //   });
-  // }
+  public deleteJob(where: Prisma.JobWhereUniqueInput) {
+    return Effect.tryPromise({
+      try: () => this.prisma.job.delete({ where }),
+      catch: (unknown) => {
+        // container.sentry.captureException(unknown);
+        if (unknown instanceof Error) {
+          return new PrismaError(unknown.message);
+        } else {
+          return new PrismaError(unknown);
+        }
+      },
+    });
+  }
 
-  // public editTicket(channel: TextChannel, data: Omit<Prisma.TicketUpdateInput, "metadata">) {
-  //   return Effect.tryPromise({
-  //     try: () => this.prisma.ticket.update({ where: { id: channel.id }, data }),
-  //     catch: (unknown) => {
-  //       container.sentry.captureException(unknown);
-  //       if (unknown instanceof Error) {
-  //         return new PrismaError(unknown.message);
-  //       } else {
-  //         return new PrismaError(unknown);
-  //       }
-  //     },
-  //   });
-  // }
+  public findJobs(where: Prisma.JobWhereInput) {
+    return Effect.tryPromise({
+      try: () => this.prisma.job.findMany({ where }),
+      catch: (unknown) => {
+        // container.sentry.captureException(unknown);
+        if (unknown instanceof Error) {
+          return new PrismaError(unknown.message);
+        } else {
+          return new PrismaError(unknown);
+        }
+      },
+    });
+  }
 }
