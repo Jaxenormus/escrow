@@ -49,6 +49,7 @@ services:
     plan: starter
     region: oregon
     ipAllowList: []
+    maxmemoryPolicy: noeviction
 databases:
   - name: middleman-db
     plan: starter
