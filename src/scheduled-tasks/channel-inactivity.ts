@@ -62,7 +62,7 @@ export class ChannelInactivityTask extends ScheduledTask {
             scheduleInactivityTask(
               channel as TextChannel,
               dayjs().add(ChannelInactivityThreshold, "millisecond").diff(lastMessage.createdAt, "millisecond"),
-              { deleteChannel: payload.deleteChannel, medium: payload.medium }
+              { deleteChannel: false, medium: payload.medium }
             )
           );
         }
