@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { EmbedBuilder, time, type TextChannel } from "discord.js";
 import { Effect } from "effect";
 
+import type { TradeMediums } from "@/src/config";
 import { ChannelInactivityThreshold, EmbedColors } from "@/src/config";
 import { scheduleInactivityTask } from "@/src/helpers/tasks/scheduleInactivityTask";
 
@@ -10,6 +11,7 @@ export interface ChannelInactivityTaskPayload {
   id: string;
   channelId: string;
   deleteChannel: boolean;
+  medium: TradeMediums;
 }
 
 export class ChannelInactivityTask extends ScheduledTask {
@@ -26,6 +28,9 @@ export class ChannelInactivityTask extends ScheduledTask {
         await Effect.runPromise(this.container.db.deleteJob({ id: payload.id }));
         if (thresholdExceeded) {
           if (payload.deleteChannel) {
+            await Effect.runPromise(
+              this.container.api.statistics.trackTicketAction(channel as TextChannel, payload.medium, "stale")
+            );
             await channel.send("$close");
           } else {
             const warning = await channel.send({
@@ -42,11 +47,14 @@ export class ChannelInactivityTask extends ScheduledTask {
               ],
             });
             await Effect.runPromise(
-              scheduleInactivityTask(
-                channel as TextChannel,
-                dayjs().add(ChannelInactivityThreshold, "millisecond").diff(warning.createdAt, "millisecond"),
-                { deleteChannel: true }
-              )
+              Effect.all([
+                this.container.api.statistics.trackTicketAction(channel as TextChannel, payload.medium, "inactive"),
+                scheduleInactivityTask(
+                  channel as TextChannel,
+                  dayjs().add(ChannelInactivityThreshold, "millisecond").diff(warning.createdAt, "millisecond"),
+                  { deleteChannel: true, medium: payload.medium }
+                ),
+              ])
             );
           }
         } else {
@@ -54,7 +62,7 @@ export class ChannelInactivityTask extends ScheduledTask {
             scheduleInactivityTask(
               channel as TextChannel,
               dayjs().add(ChannelInactivityThreshold, "millisecond").diff(lastMessage.createdAt, "millisecond"),
-              { deleteChannel: payload.deleteChannel }
+              { deleteChannel: payload.deleteChannel, medium: payload.medium }
             )
           );
         }

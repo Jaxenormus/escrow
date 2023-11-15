@@ -55,16 +55,31 @@ export class InternalStatisticsService {
   public trackTicketAction(
     channel: TextChannel,
     medium: TradeMediums,
-    action: "create" | "invite" | "role-selection" | "amount-selection"
+    action: "create" | "invite" | "role-selection" | "amount-selection" | "inactive" | "stale"
   ) {
-    const eventName =
-      action === "create"
-        ? "Ticket Created"
-        : action === "invite"
-          ? "Participant Invited to Ticket"
-          : action === "role-selection"
-            ? "Exchange Roles Selected"
-            : "Exchange Amount Selected";
+    let eventName: string;
+
+    switch (action) {
+      case "create":
+        eventName = "Ticket Created";
+        break;
+      case "invite":
+        eventName = "Participant Invited to Ticket";
+        break;
+      case "role-selection":
+        eventName = "Exchange Roles Selected";
+        break;
+      case "amount-selection":
+        eventName = "Exchange Amount Selected";
+        break;
+      case "inactive":
+        eventName = "Ticket Inactive";
+        break;
+      case "stale":
+        eventName = "Ticket Stale";
+        break;
+    }
+
     return this.callLogSnagApi({
       project: "escrow",
       channel: "tickets",
