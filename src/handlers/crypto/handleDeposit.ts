@@ -19,19 +19,20 @@ import { validateHash } from "@/src/helpers/crypto/validateHash";
 import { waitForConfirmation } from "@/src/helpers/crypto/waitForConfirmation";
 import { fiatFormat } from "@/src/helpers/fiatFormat";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
-import { MessageService } from "@/src/services/Message";
 import { clearInactivityTasks } from "@/src/helpers/tasks/clearInactivityTasks";
+import { MessageService } from "@/src/services/Message";
 
 export const handleDeposit = (
   channel: TextChannel,
   ids: Identification,
   medium: TradeMediums,
   amount: CryptoDealAmount,
-  address: Address
+  address: Address,
+  ignoredHashes: string[] = []
 ): Effect.Effect<never, ExpectedExecutionError | Error, void> => {
   return Effect.gen(function* (_) {
     const mediumAssets = container.assets.crypto[medium];
-    yield* _(
+    const sendCoinMessage = yield* _(
       MessageService.send(channel, {
         content: ids.SENDER.mention,
         embeds: [
@@ -64,7 +65,7 @@ export const handleDeposit = (
       })
     );
 
-    yield* _(
+    const copyToClipboardMessages = yield* _(
       Effect.forEach(
         [medium === TradeMediums.Ethereum ? `0x${address.data}` : address.data, amount.crypto],
         (content) => MessageService.send(channel, content)
@@ -89,7 +90,9 @@ export const handleDeposit = (
                 Effect.succeed(addressEither.right.data.txs),
                 Effect.flatMap((txs) =>
                   Effect.findFirst(txs, (t) =>
-                    Effect.succeed(t.addresses.filter((a) => a.includes(address.data)).length > 0)
+                    Effect.succeed(
+                      t.addresses.filter((a) => a.includes(address.data)).length > 0 && !ignoredHashes.includes(t.hash)
+                    )
                   )
                 )
               )
@@ -126,34 +129,27 @@ export const handleDeposit = (
     const fiatValue = yield* _(container.api.crypto.calculateFiatValue(rawAmountReceived, medium));
     const formattedAmountReceived = fiatFormat(fiatValue.data.data[0].quote["USD"].price);
 
+    const waitForConfirmationEmbed = new EmbedBuilder()
+      .setTitle("Please wait for the transaction to confirm.")
+      .setDescription(
+        "A valid transaction has been detected but not yet confirmed. Please wait before proceeding with your exchange."
+      )
+      .addFields([
+        { name: "Hash", value: hyperlink(transactionHash, findHashUrl(medium, transactionHash)) },
+        { name: "Required Confirmations", value: toString(CryptoConfirmations[medium]), inline: true },
+        { name: "Expected Amount", value: formattedAmountReceived, inline: true },
+      ])
+      .setColor(EmbedColors.Loading)
+      .setThumbnail(mediumAssets.pending.name);
+
     if (transactionStatus === "VALID") {
-      const msg = yield* _(
+      const waitForConfirmationMessage = yield* _(
         MessageService.send(channel, {
-          embeds: [
-            new EmbedBuilder()
-              .setTitle("Please wait for the transaction to confirm.")
-              .setDescription(
-                "A valid transaction has been detected but not yet confirmed. Please wait before proceeding with your exchange."
-              )
-              .addFields([
-                {
-                  name: "Hash",
-                  value: hyperlink(transactionHash, findHashUrl(medium, transactionHash)),
-                },
-                {
-                  name: "Required Confirmations",
-                  value: toString(CryptoConfirmations[medium]),
-                  inline: true,
-                },
-                { name: "Expected Amount", value: formattedAmountReceived, inline: true },
-              ])
-              .setColor(EmbedColors.Loading)
-              .setThumbnail(mediumAssets.pending.name),
-          ],
+          embeds: [waitForConfirmationEmbed],
           files: [mediumAssets.pending.attachment],
         })
       );
-      yield* _(Ref.update(messagesToDeleteRef, (messages) => [...messages, msg]));
+      yield* _(Ref.update(messagesToDeleteRef, (messages) => [...messages, waitForConfirmationMessage]));
     } else if (transactionStatus === "UNDER_PAID") {
       const [underValueMessage, { consensus, message }] = yield* _(
         Effect.all([
@@ -181,7 +177,7 @@ export const handleDeposit = (
                 new EmbedBuilder()
                   .setTitle("Would you like to accept this lower amount?")
                   .setDescription(
-                    "The sender has sent less than 98% of the required amount. If you accept this transaction, you will not be able to request the remaining amount. Selecting deny will cancel the trade and refund the sender."
+                    `The sender has sent less than 98% of the required amount. If you accept this transaction, ${ids.SENDER.mention} can still send the remaining amount to the bot if desired. Selecting deny will cancel the trade and refund the sender.`
                   )
                   .addFields([
                     { name: "Amount Expected ", value: `${amount.fiat}`, inline: true },
@@ -198,20 +194,27 @@ export const handleDeposit = (
       );
       yield* _(MessageService.batchDelete([message, underValueMessage]));
       if (consensus) {
-        yield* _(
-          MessageService.send(channel, {
-            content: ids.SENDER.mention,
-            embeds: [
-              new EmbedBuilder()
-                .setTitle("Transaction has been accepted.")
-                .setDescription("The receiver has accepted your transaction despite being under the required amount.")
-                .setFields(message.embeds[0].fields)
-                .setColor(EmbedColors.Success)
-                .setThumbnail(mediumAssets.confirmed.name),
-            ],
-            files: [mediumAssets.confirmed.attachment],
-          })
+        const [, waitForConfirmationMessage] = yield* _(
+          Effect.all([
+            MessageService.send(channel, {
+              content: ids.SENDER.mention,
+              embeds: [
+                new EmbedBuilder()
+                  .setTitle("Transaction has been accepted.")
+                  .setDescription("The receiver has accepted your transaction despite being under the required amount.")
+                  .setFields(message.embeds[0].fields)
+                  .setColor(EmbedColors.Success)
+                  .setThumbnail(mediumAssets.confirmed.name),
+              ],
+              files: [mediumAssets.confirmed.attachment],
+            }),
+            MessageService.send(channel, {
+              embeds: [waitForConfirmationEmbed],
+              files: [mediumAssets.pending.attachment],
+            }),
+          ])
         );
+        yield* _(Ref.update(messagesToDeleteRef, (messages) => [...messages, waitForConfirmationMessage]));
       } else {
         yield* _(
           MessageService.send(channel, {
@@ -281,9 +284,8 @@ export const handleDeposit = (
       Effect.either(waitForConfirmation(channel, medium, transactionHash, CryptoConfirmations[medium]))
     );
 
-    yield* _(pipe(Ref.get(messagesToDeleteRef), Effect.flatMap(MessageService.batchDelete)));
-
-    if (Either.right(confirmationEither)) {
+    if (Either.isRight(confirmationEither)) {
+      yield* _(pipe(Ref.get(messagesToDeleteRef), Effect.flatMap(MessageService.batchDelete)));
       const hash = yield* _(container.api.crypto.getHashInfo(medium, transactionHash));
       yield* _(
         MessageService.send(channel, {
@@ -312,6 +314,10 @@ export const handleDeposit = (
       );
     } else {
       yield* _(
+        Ref.update(messagesToDeleteRef, (messages) => [...messages, ...copyToClipboardMessages, sendCoinMessage])
+      );
+      yield* _(pipe(Ref.get(messagesToDeleteRef), Effect.flatMap(MessageService.batchDelete)));
+      yield* _(
         MessageService.send(channel, {
           content: ids.SENDER.mention,
           embeds: [
@@ -334,7 +340,7 @@ export const handleDeposit = (
           ],
         })
       );
-      return yield* _(handleDeposit(channel, ids, medium, amount, address));
+      return yield* _(handleDeposit(channel, ids, medium, amount, address, [...ignoredHashes, transactionHash]));
     }
   });
 };
