@@ -93,10 +93,12 @@ export default class ChannelCreateListener extends Listener {
                     const member = yield* _(MemberService.fetch(channel.guild, interaction.values[0]));
                     let errorMsg = "";
 
-                    if (member.id === interaction.user.id) {
-                      errorMsg = "You cannot add yourself to a ticket. Please try again.";
-                    } else if (member.user.bot) {
-                      errorMsg = "You cannot add a bot to a ticket. Please try again.";
+                    if (container.environment !== "development") {
+                      if (member.id === interaction.user.id) {
+                        errorMsg = "You cannot add yourself to a ticket. Please try again.";
+                      } else if (member.user.bot) {
+                        errorMsg = "You cannot add a bot to a ticket. Please try again.";
+                      }
                     }
 
                     if (errorMsg) {
