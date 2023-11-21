@@ -10,12 +10,12 @@ export class MemberService {
       if (Either.isRight(memberEither)) {
         const roleEither = yield* _(Effect.either(Effect.tryPromise(() => memberEither.right.roles.add(roleId))));
         if (Either.isRight(roleEither)) {
-          return memberEither.right;
+          return yield* _(Effect.succeed(memberEither.right));
         } else {
-          throw new MemberServiceError(roleEither.left, "addRole");
+          return yield* _(Effect.fail(new MemberServiceError(roleEither.left, "addRole")));
         }
       } else {
-        throw new MemberServiceError(memberEither.left, "fetchUser");
+        return yield* _(Effect.fail(new MemberServiceError(memberEither.left, "addRole")));
       }
     });
   }

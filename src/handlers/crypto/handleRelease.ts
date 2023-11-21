@@ -1,7 +1,7 @@
 import type { Address } from "@prisma/client";
 import { container } from "@sapphire/framework";
 import type { TextChannel } from "discord.js";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, codeBlock } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, channelMention, codeBlock } from "discord.js";
 import { Effect, Either } from "effect";
 import { toLower, toString } from "lodash";
 
@@ -42,6 +42,21 @@ export default function handleRelease(
                 .setStyle(ButtonStyle.Link)
                 .setURL(findHashUrl(medium, hashEither.right))
             ),
+          ],
+        })
+      );
+      yield* _(
+        MessageService.send(channel, {
+          content: ids.all.mention,
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("Don't forget to vouch")
+              .setDescription(
+                `We hope you loved using our service. Please leave a vouch in ${channelMention(
+                  process.env.VOUCH_CHANNEL_ID ?? ""
+                )} to help us grow!`
+              )
+              .setColor(EmbedColors.Main),
           ],
         })
       );
