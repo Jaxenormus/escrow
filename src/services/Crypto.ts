@@ -224,6 +224,7 @@ export class CryptoService {
           },
         });
       }),
+      Effect.tap(() => this.prisma.updateAddress(source, { released: true })),
       Effect.flatMap((response) => Effect.succeed(response.data.tx.hash))
     );
   }

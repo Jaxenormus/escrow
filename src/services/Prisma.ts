@@ -36,6 +36,19 @@ export class PrismaService {
     });
   }
 
+  public updateAddress(where: Prisma.AddressWhereUniqueInput, data: Prisma.AddressUpdateInput) {
+    return Effect.tryPromise({
+      try: () => this.prisma.address.update({ where, data }),
+      catch: (unknown) => {
+        if (unknown instanceof Error) {
+          return new PrismaError(unknown.message);
+        } else {
+          return new PrismaError(unknown);
+        }
+      },
+    });
+  }
+
   public createJob(data: Prisma.JobCreateInput) {
     return Effect.tryPromise({
       try: () => this.prisma.job.create({ data }),

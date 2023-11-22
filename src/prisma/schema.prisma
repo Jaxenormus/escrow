@@ -8,15 +8,17 @@ datasource db {
 }
 
 model Address {
-  id       String @id
-  data     String
-  public   String
-  private  String
-  recovery String
+  id        String   @id
+  data      String
+  public    String
+  private   String
+  recovery  String
+  released  Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model Job {
-  id      String @id
+  id        String @id
   channelId String
 
   @@index([channelId])
