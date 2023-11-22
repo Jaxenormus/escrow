@@ -10,14 +10,14 @@ import { EventEmitter } from "stream";
 import { TradeMediums } from "@/src/config";
 import { SimplifiedTradeMediums } from "@/src/config";
 import { CryptoService } from "@/src/services/Crypto";
-import { PrismaService } from "@/src/services/Prisma";
 import { InternalStatisticsService } from "@/src/services/InternalStatistics";
+import { PrismaService } from "@/src/services/Prisma";
 
 const buildCryptoAsset = (data: string) => {
   const buildTuple = (name: string) => {
     const file = `${toLower(name)}.png`;
     return {
-      attachment: new AttachmentBuilder(path.join(__dirname, "../assets/images", file), { name: file }),
+      attachment: new AttachmentBuilder(path.join(__dirname, "./assets/images", file), { name: file }),
       name: `attachment://${file}`,
     } as const;
   };
