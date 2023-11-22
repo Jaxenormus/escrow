@@ -38,3 +38,4 @@ export enum Interactions {
 }
 
 export const ChannelInactivityThreshold = 300_000;
+export const ChannelStaleThreshold = 120_000;
