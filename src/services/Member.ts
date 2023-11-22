@@ -23,7 +23,6 @@ export class MemberService {
     return Effect.tryPromise({
       try: () => guild.members.fetch(memberId),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof DiscordAPIError) {
           return new MemberServiceError(unknown.message, "fetch");
         } else {

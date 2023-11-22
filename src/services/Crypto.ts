@@ -1,19 +1,17 @@
 import { sign, utils } from "@noble/secp256k1";
 import type { Address } from "@prisma/client";
-import { container } from "@sapphire/pieces";
-import type { AxiosRequestConfig } from "axios";
-import axios, { AxiosError } from "axios";
-import axiosRetry from "axios-retry";
+import { AxiosError } from "axios";
 import type { TextChannel } from "discord.js";
 import { Effect } from "effect";
 
-import type { PrismaService } from "@/src/services/Prisma";
 import { SimplifiedTradeMediums, TradeMediums } from "@/src/config";
 import { AddressGenerationError } from "@/src/errors/AddressGenerationError";
 import { BlockCypherApiError } from "@/src/errors/BlockCypherApiError";
 import { CoinMarketCapApiError } from "@/src/errors/CoinMarketCapApiError";
 import { GenericError } from "@/src/errors/GenericError";
 import { resolveNetwork } from "@/src/helpers/crypto/resolveNetwork";
+import { AxiosService } from "@/src/services/Axios";
+import type { PrismaService } from "@/src/services/Prisma";
 
 interface CoinMarketCapError {
   status: {
@@ -103,65 +101,13 @@ export class CryptoService {
     this.prisma = prisma;
   }
 
-  private createBaseInstance(options?: AxiosRequestConfig) {
-    const instance = axios.create(options);
-    instance.interceptors.response.use(
-      (response) => {
-        container.log.info(
-          `[${response.request.host}] [${response.request.method}] [${response.status}] ${response.config.url}`,
-          {
-            response: { status: response.status, body: response.data, headers: response.headers },
-            request: {
-              method: response.request.method,
-              url: `${response.request.res.responseUrl}`,
-              body: response.config.data,
-            },
-          }
-        );
-        return response;
-      },
-      (error) => {
-        if (error instanceof AxiosError) {
-          container.log.error(
-            `[${error.request.host}] [${error.request.method}] [${error.response?.status}] ${error.config?.url}`,
-            {
-              response: {
-                status: error.response?.status,
-                body: error.response?.data,
-                headers: error.response?.headers,
-              },
-              request: {
-                method: error.request.method,
-                url: `${error.request.res.responseUrl}`,
-                body: error.config?.data,
-              },
-            }
-          );
-        }
-        throw error;
-      }
-    );
-    axiosRetry(instance, {
-      retries: 5,
-      retryDelay(retryCount, error) {
-        const delay = axiosRetry.exponentialDelay(retryCount);
-        const handShakeFailedDelay = delay + 10000;
-        return (error.response?.status ?? 0) === 565 ? handShakeFailedDelay : delay;
-      },
-      retryCondition(error) {
-        return (error.response?.status ?? 0) === 565 ? true : axiosRetry.isNetworkOrIdempotentRequestError(error);
-      },
-    });
-    return instance;
-  }
-
-  private coinmarketcap = this.createBaseInstance({
+  private coinmarketcap = AxiosService.newInstance({
     baseURL: "https://pro-api.coinmarketcap.com/v2",
     headers: { "X-CMC_PRO_API_KEY": process.env.CMC_API_KEY },
   });
 
   private createBlockCypherInstance(coin: TradeMediums) {
-    return this.createBaseInstance({
+    return AxiosService.newInstance({
       baseURL: `https://api.blockcypher.com/v1/${resolveNetwork(coin)}`,
       params: { token: process.env.BLOCKCYPHER_TOKEN },
     });

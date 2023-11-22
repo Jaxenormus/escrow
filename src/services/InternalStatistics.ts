@@ -1,7 +1,5 @@
 import { container } from "@sapphire/pieces";
-import type { AxiosRequestConfig } from "axios";
-import axios, { AxiosError } from "axios";
-import axiosRetry from "axios-retry";
+import { AxiosError } from "axios";
 import type { TextChannel } from "discord.js";
 import { Console, Effect } from "effect";
 import { toLower } from "lodash";
@@ -10,25 +8,10 @@ import type { TradeMediums } from "@/src/config";
 import { SimplifiedTradeMediums } from "@/src/config";
 import { LogSnagApiError } from "@/src/errors/LogSnagApiError";
 import type { CryptoDealAmount } from "@/src/handlers/crypto/handleAmountSelection";
+import { AxiosService } from "@/src/services/Axios";
 
 export class InternalStatisticsService {
-  private createBaseInstance(options?: AxiosRequestConfig) {
-    const instance = axios.create(options);
-    axiosRetry(instance, {
-      retries: 5,
-      retryDelay(retryCount, error) {
-        const delay = axiosRetry.exponentialDelay(retryCount);
-        const handShakeFailedDelay = delay + 10000;
-        return (error.response?.status ?? 0) === 565 ? handShakeFailedDelay : delay;
-      },
-      retryCondition(error) {
-        return (error.response?.status ?? 0) === 565 ? true : axiosRetry.isNetworkOrIdempotentRequestError(error);
-      },
-    });
-    return instance;
-  }
-
-  private logsnag = this.createBaseInstance({
+  private logsnag = AxiosService.newInstance({
     baseURL: "https://api.logsnag.com/v1",
     headers: {
       "Content-Type": "application/json",
@@ -41,7 +24,6 @@ export class InternalStatisticsService {
     return Effect.tryPromise({
       try: () => this.logsnag.post("/log", body),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof AxiosError) {
           const error = unknown as AxiosError;
           return new LogSnagApiError(error.response?.data);

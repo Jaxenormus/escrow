@@ -14,7 +14,6 @@ export class PrismaService {
     return Effect.tryPromise({
       try: () => this.prisma.address.create({ data }),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {
@@ -28,7 +27,6 @@ export class PrismaService {
     return Effect.tryPromise({
       try: () => this.prisma.address.findFirst({ where }),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {
@@ -42,7 +40,6 @@ export class PrismaService {
     return Effect.tryPromise({
       try: () => this.prisma.job.create({ data }),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {
@@ -56,7 +53,6 @@ export class PrismaService {
     return Effect.tryPromise({
       try: () => this.prisma.job.delete({ where }),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {
@@ -70,7 +66,6 @@ export class PrismaService {
     return Effect.tryPromise({
       try: () => this.prisma.job.findMany({ where }),
       catch: (unknown) => {
-        // container.sentry.captureException(unknown);
         if (unknown instanceof Error) {
           return new PrismaError(unknown.message);
         } else {

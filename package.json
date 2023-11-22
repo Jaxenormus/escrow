@@ -3,7 +3,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "tsnd --rs --transpile-only -r tsconfig-paths/register src/index.ts",
-    "build": "swc ./src -d build && resolve-tspaths && recursive-copy src/assets build/assets",
+    "build": "rimraf ./build && swc ./src -d build && resolve-tspaths && recursive-copy src/assets build/assets",
     "start": "prisma db push && node build/index.js",
     "lint": "eslint --ext .ts src --fix"
   },
@@ -28,8 +28,7 @@
     "prisma": "^5.3.1",
     "satoshi-bitcoin": "^1.0.5",
     "uuid": "^9.0.1",
-    "web3": "^4.1.2",
-    "zod": "^3.22.2"
+    "web3": "^4.1.2"
   },
   "devDependencies": {
     "@swc/cli": "^0.1.62",

@@ -2,9 +2,8 @@ FROM node:18.16.1 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
-RUN corepack prepare pnpm@7.2.1 --activate
+RUN corepack prepare pnpm@8.10.5 --activate
 RUN apt-get update && apt-get install build-essential jq moreutils -y
-RUN curl -sL https://sentry.io/get-cli/ | SENTRY_CLI_VERSION="2.21.1" sh
 COPY . /app
 WORKDIR /app
 

@@ -11,7 +11,7 @@ import { TradeMediums } from "@/src/config";
 import { SimplifiedTradeMediums } from "@/src/config";
 import { CryptoService } from "@/src/services/Crypto";
 import { PrismaService } from "@/src/services/Prisma";
-import { InternalStatisticsService } from "@/src/services/Statistics";
+import { InternalStatisticsService } from "@/src/services/InternalStatistics";
 
 const buildCryptoAsset = (data: string) => {
   const buildTuple = (name: string) => {
