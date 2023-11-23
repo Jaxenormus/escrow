@@ -14,9 +14,9 @@ export class MessageService {
           try: () => channel.send(data),
           catch: (unknown) => {
             if (unknown instanceof DiscordAPIError) {
-              return new MessageServiceError(unknown.message, "delete");
+              return new MessageServiceError(unknown.message, "send");
             } else {
-              return new MessageServiceError(unknown, "delete");
+              return new MessageServiceError(unknown, "send");
             }
           },
         })
@@ -29,9 +29,9 @@ export class MessageService {
       try: () => message.edit(data),
       catch: (unknown) => {
         if (unknown instanceof DiscordAPIError) {
-          return new MessageServiceError(unknown.message, "delete");
+          return new MessageServiceError(unknown.message, "edit");
         } else {
-          return new MessageServiceError(unknown, "delete");
+          return new MessageServiceError(unknown, "edit");
         }
       },
     });
@@ -66,9 +66,9 @@ export class MessageService {
       try: () => message.reply(data),
       catch: (unknown) => {
         if (unknown instanceof DiscordAPIError) {
-          return new MessageServiceError(unknown.message, "delete");
+          return new MessageServiceError(unknown.message, "reply");
         } else {
-          return new MessageServiceError(unknown, "delete");
+          return new MessageServiceError(unknown, "reply");
         }
       },
     });
