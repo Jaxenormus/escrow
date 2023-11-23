@@ -9,6 +9,7 @@ import { EmbedColors } from "@/src/config";
 import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { findAddressUrl } from "@/src/helpers/crypto/findAddressUrl";
+import type { MessageCollectorEndReason} from "@/src/helpers/listenForMessages";
 import { listenForMessages } from "@/src/helpers/listenForMessages";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
 import { MessageService } from "@/src/services/Message";
@@ -18,7 +19,7 @@ export default function handleAddressCollection(
   ids: Identification,
   medium: TradeMediums,
   party: TradeParties
-): Effect.Effect<never, ExpectedExecutionError | Error, string> {
+): Effect.Effect<never, ExpectedExecutionError | Error | MessageCollectorEndReason, string> {
   return Effect.gen(function* (_) {
     const embedMessage = yield* _(
       MessageService.send(channel, {
@@ -36,31 +37,33 @@ export default function handleAddressCollection(
     const { content } = yield* _(
       listenForMessages(
         channel,
-        async ({ received, endListener }) => {
-          await Effect.runPromiseExit(
-            Effect.match(container.api.crypto.getAddressInfo(medium, received.content), {
-              onSuccess: async () => {
-                await Effect.runPromiseExit(
-                  Effect.all([MessageService.batchDelete([embedMessage, received]), endListener], {
-                    concurrency: "unbounded",
-                  })
-                );
-              },
-              onFailure: async () => {
-                await Effect.runPromiseExit(
-                  Effect.gen(function* (_) {
-                    const reply = yield* _(
-                      MessageService.reply(
-                        received,
-                        `The address you provided is not a valid ${medium} address. Please try again.`
-                      )
-                    );
-                    yield* _(MessageService.batchDelete([reply, received], "5 seconds"));
-                  })
-                );
-              },
-            })
-          );
+        ({ received, endListener }) => {
+          return Effect.gen(function* (_) {
+            yield* _(
+              Effect.match(container.api.crypto.getAddressInfo(medium, received.content), {
+                onSuccess: async () => {
+                  await Effect.runPromiseExit(
+                    Effect.all([MessageService.batchDelete([embedMessage, received]), endListener], {
+                      concurrency: "unbounded",
+                    })
+                  );
+                },
+                onFailure: async () => {
+                  await Effect.runPromiseExit(
+                    Effect.gen(function* (_) {
+                      const reply = yield* _(
+                        MessageService.reply(
+                          received,
+                          `The address you provided is not a valid ${medium} address. Please try again.`
+                        )
+                      );
+                      yield* _(MessageService.batchDelete([reply, received], "5 seconds"));
+                    })
+                  );
+                },
+              })
+            );
+          });
         },
         { filter: (message) => message.author.id === ids[party].id }
       )

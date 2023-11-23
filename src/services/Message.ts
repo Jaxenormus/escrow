@@ -1,4 +1,4 @@
-import type { Message, MessageEditOptions } from "discord.js";
+import type { EmojiIdentifierResolvable, Message, MessageEditOptions } from "discord.js";
 import { DiscordAPIError, type TextChannel, type MessageCreateOptions, type MessagePayload } from "discord.js";
 import { Effect } from "effect";
 import type { DurationInput } from "effect/Duration";
@@ -69,6 +69,19 @@ export class MessageService {
           return new MessageServiceError(unknown.message, "reply");
         } else {
           return new MessageServiceError(unknown, "reply");
+        }
+      },
+    });
+  }
+
+  static react(message: Message, emoji: EmojiIdentifierResolvable) {
+    return Effect.tryPromise({
+      try: () => message.react(emoji),
+      catch: (unknown) => {
+        if (unknown instanceof DiscordAPIError) {
+          return new MessageServiceError(unknown.message, "react");
+        } else {
+          return new MessageServiceError(unknown, "react");
         }
       },
     });

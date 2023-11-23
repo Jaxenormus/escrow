@@ -10,6 +10,7 @@ import { EmbedColors } from "@/src/config";
 import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import type { Identification } from "@/src/handlers/core/handleIdentification";
 import { fiatFormat } from "@/src/helpers/fiatFormat";
+import type { MessageCollectorEndReason } from "@/src/helpers/listenForMessages";
 import { listenForMessages } from "@/src/helpers/listenForMessages";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
 import { MessageService } from "@/src/services/Message";
@@ -20,7 +21,7 @@ export function handleAmountSelection(
   channel: TextChannel,
   ids: Identification,
   medium: TradeMediums
-): Effect.Effect<never, ExpectedExecutionError, CryptoDealAmount> {
+): Effect.Effect<never, ExpectedExecutionError | MessageCollectorEndReason, CryptoDealAmount> {
   return Effect.gen(function* (_) {
     const message = yield* _(
       MessageService.send(channel, {
@@ -37,20 +38,18 @@ export function handleAmountSelection(
     );
 
     const { content: rawAmount } = yield* _(
-      listenForMessages(channel, async ({ received, endListener }) => {
-        await Effect.runPromiseExit(
-          Effect.gen(function* (_) {
-            if (received.author.id === ids.RECEIVER.id) {
-              const input = parseFirst(`${received.content} USD`);
-              if (isNil(input)) {
-                const reply = yield* _(MessageService.reply(received, "Please enter a valid number."));
-                yield* _(MessageService.batchDelete([reply, received], "5 seconds"));
-              } else {
-                yield* _(Effect.all([MessageService.delete(received), endListener], { concurrency: "unbounded" }));
-              }
+      listenForMessages(channel, ({ received, endListener }) => {
+        return Effect.gen(function* (_) {
+          if (received.author.id === ids.RECEIVER.id) {
+            const input = parseFirst(`${received.content} USD`);
+            if (isNil(input)) {
+              const reply = yield* _(MessageService.reply(received, "Please enter a valid number."));
+              yield* _(MessageService.batchDelete([reply, received], "5 seconds"));
+            } else {
+              yield* _(Effect.all([MessageService.delete(received), endListener], { concurrency: "unbounded" }));
             }
-          })
-        );
+          }
+        });
       })
     );
 

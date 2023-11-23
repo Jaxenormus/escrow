@@ -1,5 +1,7 @@
 import type { ChatInputCommand } from "@sapphire/framework";
 import { Command } from "@sapphire/framework";
+import { ChannelType } from "discord.js";
+import { Console, Effect } from "effect";
 
 
 export default class TestCommand extends Command {
@@ -19,14 +21,13 @@ export default class TestCommand extends Command {
   public async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
     if (interaction.channel && interaction.channel.isTextBased() && interaction.inGuild()) {
       await interaction.deferReply({ ephemeral: true });
-      // const task = await scheduleInactivityTask(interaction.channel as TextChannel);
-      // console.log(task);
-      // await Effect.runPromise(
-      //   Effect.gen(function* (_) {
-      //     if (interaction.channel && interaction.channel.isTextBased()) {
-      //     }
-      //   })
-      // );
+      await Effect.runPromise(
+        Effect.gen(function* (_) {
+          if (interaction.channel && interaction.channel.type === ChannelType.GuildText) {
+            yield* _(Console.log("test"));
+          }
+        })
+      );
     }
   }
 }
