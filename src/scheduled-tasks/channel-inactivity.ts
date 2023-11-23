@@ -4,7 +4,7 @@ import { EmbedBuilder, time, type TextChannel } from "discord.js";
 import { Effect } from "effect";
 
 import type { TradeMediums } from "@/src/config";
-import { ChannelInactivityThreshold, ChannelStaleThreshold, EmbedColors } from "@/src/config";
+import { ChannelInactivityThreshold, EmbedColors } from "@/src/config";
 import { scheduleInactivityTask } from "@/src/helpers/tasks/scheduleInactivityTask";
 
 export interface ChannelInactivityTaskPayload {
@@ -39,7 +39,7 @@ export class ChannelInactivityTask extends ScheduledTask {
                   .setTitle("Ticket inactivity threshold reached")
                   .setDescription(
                     `The ticket will be closed in ${time(
-                      dayjs().add(ChannelStaleThreshold, "millisecond").toDate(),
+                      dayjs().add(ChannelInactivityThreshold, "millisecond").toDate(),
                       "R"
                     )} due to inactivity.\n\n• If the deal is still active send a message to mark this ticket as active\n• If the deal is not active no further action is required and ticket will be deleted.`
                   )
@@ -51,7 +51,7 @@ export class ChannelInactivityTask extends ScheduledTask {
                 this.container.api.statistics.trackTicketAction(channel as TextChannel, payload.medium, "inactive"),
                 scheduleInactivityTask(
                   channel as TextChannel,
-                  dayjs().add(ChannelStaleThreshold, "millisecond").diff(warning.createdAt, "millisecond"),
+                  dayjs().add(ChannelInactivityThreshold, "millisecond").diff(warning.createdAt, "millisecond"),
                   { deleteChannel: true, medium: payload.medium }
                 ),
               ])

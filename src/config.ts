@@ -37,5 +37,4 @@ export enum Interactions {
   PartyIdentificationResetButton = "PartyIdentificationResetButton",
 }
 
-export const ChannelInactivityThreshold = 300_000;
-export const ChannelStaleThreshold = 120_000;
+export const ChannelInactivityThreshold = 120_000;
