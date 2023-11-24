@@ -6,7 +6,12 @@ import { Effect, Either } from "effect";
 import { isNil, toString } from "lodash";
 import { startCase } from "lodash";
 
-import { ChannelInactivityThreshold, CryptoConfirmations, SimplifiedTradeMediums, TradeMediums } from "@/src/config";
+import {
+  CryptoConfirmations,
+  SimplifiedTradeMediums,
+  StrictChannelInactivityThreshold,
+  TradeMediums,
+} from "@/src/config";
 import { EmbedColors, Interactions } from "@/src/config";
 import { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
@@ -33,7 +38,7 @@ export default class ChannelCreateListener extends Listener {
         if (!isNil(matches) && channel.isTextBased() && channel.type === ChannelType.GuildText) {
           const medium = TradeMediums[startCase(matches[1].replace("-", "_")) as unknown as keyof typeof TradeMediums];
           if (medium) {
-            yield* _(scheduleInactivityTask(channel, ChannelInactivityThreshold, { medium, deleteChannel: false }));
+            yield* _(scheduleInactivityTask(channel, StrictChannelInactivityThreshold, { medium, }));
             yield* _(container.api.statistics.trackTicketAction(channel, medium, "create"));
             yield* _(
               MessageService.send(channel, {

@@ -3,13 +3,12 @@ import type { TextChannel } from "discord.js";
 import { Effect } from "effect";
 import { v4 } from "uuid";
 
-import { ChannelInactivityThreshold } from "@/src/config";
 import type { ChannelInactivityTaskPayload } from "@/src/scheduled-tasks/channel-inactivity";
 
 export const scheduleInactivityTask = (
   channel: TextChannel,
-  interval?: number,
-  options?: Omit<ChannelInactivityTaskPayload, "channelId" | "id">
+  interval: number,
+  options?: Omit<ChannelInactivityTaskPayload, "channelId" | "id" | "threshold"> & { threshold?: number }
 ) => {
   return Effect.gen(function* (_) {
     const job = yield* _(
@@ -17,12 +16,8 @@ export const scheduleInactivityTask = (
         const jobId = v4();
         const job = await container.tasks.create(
           "channelInactivity",
-          { id: jobId, channelId: channel.id, ...options },
-          {
-            repeated: false,
-            delay: interval ?? ChannelInactivityThreshold,
-            customJobOptions: { jobId, removeOnComplete: true },
-          }
+          { ...options, id: jobId, channelId: channel.id, threshold: interval } as ChannelInactivityTaskPayload,
+          { repeated: false, delay: interval, customJobOptions: { jobId, removeOnComplete: true } }
         );
         return job;
       })

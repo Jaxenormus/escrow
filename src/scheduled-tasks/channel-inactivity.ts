@@ -5,7 +5,7 @@ import { EmbedBuilder, time, type TextChannel, ChannelType } from "discord.js";
 import { Effect, Either, pipe } from "effect";
 
 import type { TradeMediums } from "@/src/config";
-import { ChannelInactivityThreshold, EmbedColors } from "@/src/config";
+import { EmbedColors } from "@/src/config";
 import { listenForMessages } from "@/src/helpers/listenForMessages";
 import { scheduleInactivityTask } from "@/src/helpers/tasks/scheduleInactivityTask";
 import { MessageService } from "@/src/services/Message";
@@ -14,6 +14,7 @@ export interface ChannelInactivityTaskPayload {
   id: string;
   channelId: string;
   medium: TradeMediums;
+  threshold: number;
 }
 
 export class ChannelInactivityTask extends ScheduledTask {
@@ -33,7 +34,7 @@ export class ChannelInactivityTask extends ScheduledTask {
             )
           );
           if (lastMessage) {
-            const thresholdExceeded = dayjs().diff(lastMessage.createdAt, "millisecond") > ChannelInactivityThreshold;
+            const thresholdExceeded = dayjs().diff(lastMessage.createdAt, "millisecond") > payload.threshold;
             yield* _(container.db.deleteJob({ id: payload.id }));
             if (thresholdExceeded) {
               const [warning] = yield* _(
@@ -45,7 +46,7 @@ export class ChannelInactivityTask extends ScheduledTask {
                           .setTitle("Ticket inactivity detected.")
                           .setDescription(
                             `This ticket no longer seems to be active and will be closed in ${time(
-                              dayjs().add(ChannelInactivityThreshold, "millisecond").toDate(),
+                              dayjs().add(payload.threshold, "millisecond").toDate(),
                               "R"
                             )}.`
                           )
@@ -74,22 +75,19 @@ export class ChannelInactivityTask extends ScheduledTask {
                     ({ received, endListener }) => {
                       return Effect.gen(function* (_) {
                         yield* _(
-                          Effect.all([endListener, MessageService.react(received, "👍")], {
-                            concurrency: "unbounded",
-                          })
+                          Effect.all(
+                            [endListener, MessageService.react(received, "👍"), MessageService.delete(warning)],
+                            { concurrency: "unbounded" }
+                          )
                         );
                       });
                     },
-                    {
-                      time: dayjs()
-                        .add(ChannelInactivityThreshold, "millisecond")
-                        .diff(warning.createdAt, "millisecond"),
-                    }
+                    { time: dayjs().add(payload.threshold, "millisecond").diff(warning.createdAt, "millisecond") }
                   )
                 )
               );
               if (Either.isRight(collectedMessagesEither)) {
-                yield* _(scheduleInactivityTask(channel, ChannelInactivityThreshold, { medium: payload.medium }));
+                yield* _(scheduleInactivityTask(channel, payload.threshold, payload));
               } else {
                 yield* _(
                   Effect.all(
@@ -105,8 +103,8 @@ export class ChannelInactivityTask extends ScheduledTask {
               yield* _(
                 scheduleInactivityTask(
                   channel,
-                  dayjs().add(ChannelInactivityThreshold, "millisecond").diff(lastMessage.createdAt, "millisecond"),
-                  { medium: payload.medium }
+                  dayjs().add(payload.threshold, "millisecond").diff(lastMessage.createdAt, "millisecond"),
+                  payload
                 )
               );
             }

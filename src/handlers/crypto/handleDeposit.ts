@@ -6,7 +6,7 @@ import { ActionRowBuilder, EmbedBuilder, hyperlink } from "discord.js";
 import { Effect, Either, Option, Ref, Schedule, pipe } from "effect";
 import { toString } from "lodash";
 
-import { TradeMediums } from "@/src/config";
+import { LenientChannelInactivityThreshold, TradeMediums } from "@/src/config";
 import { CryptoConfirmations, EmbedColors, TradeParties } from "@/src/config";
 import type { ExpectedExecutionError } from "@/src/errors/ExpectedExecutionError";
 import { PrematureTerminationError } from "@/src/errors/PrematureTermination";
@@ -18,8 +18,10 @@ import { findHashUrl } from "@/src/helpers/crypto/findHashUrl";
 import { validateHash } from "@/src/helpers/crypto/validateHash";
 import { waitForConfirmation } from "@/src/helpers/crypto/waitForConfirmation";
 import { fiatFormat } from "@/src/helpers/fiatFormat";
+import type { MessageCollectorEndReason } from "@/src/helpers/listenForMessages";
 import { promptQuestion } from "@/src/helpers/promptQuestion";
 import { clearInactivityTasks } from "@/src/helpers/tasks/clearInactivityTasks";
+import { scheduleInactivityTask } from "@/src/helpers/tasks/scheduleInactivityTask";
 import { MessageService } from "@/src/services/Message";
 
 export const handleDeposit = (
@@ -29,40 +31,49 @@ export const handleDeposit = (
   amount: CryptoDealAmount,
   address: Address,
   ignoredHashes: string[] = []
-): Effect.Effect<never, ExpectedExecutionError | Error, void> => {
+): Effect.Effect<never, ExpectedExecutionError | Error | MessageCollectorEndReason, void> => {
   return Effect.gen(function* (_) {
     const mediumAssets = container.assets.crypto[medium];
-    const sendCoinMessage = yield* _(
-      MessageService.send(channel, {
-        content: ids.SENDER.mention,
-        embeds: [
-          new EmbedBuilder()
-            .setTitle(`Send your ${medium} as part of the trade.`)
-            .setDescription(
-              `The bot will automatically detect the transaction and wait for ${CryptoConfirmations[medium]} confirmation(s).`
-            )
-            .addFields([
-              {
-                name: `Address`,
-                value: hyperlink(
-                  medium === TradeMediums.Ethereum ? `0x${address.data}` : address.data,
-                  findAddressUrl(medium, address.data)
-                ),
-              },
-              { name: `Amount`, value: `${amount.crypto} (${amount.fiat})` },
-            ])
+    const [sendCoinMessage] = yield* _(
+      Effect.all(
+        [
+          MessageService.send(channel, {
+            content: ids.SENDER.mention,
+            embeds: [
+              new EmbedBuilder()
+                .setTitle(`Send your ${medium} as part of the trade.`)
+                .setDescription(
+                  `The bot will automatically detect the transaction and wait for ${CryptoConfirmations[medium]} confirmation(s).`
+                )
+                .addFields([
+                  {
+                    name: `Address`,
+                    value: hyperlink(
+                      medium === TradeMediums.Ethereum ? `0x${address.data}` : address.data,
+                      findAddressUrl(medium, address.data)
+                    ),
+                  },
+                  { name: `Amount`, value: `${amount.crypto} (${amount.fiat})` },
+                ])
 
-            .setColor(EmbedColors.Loading)
-            .setThumbnail(mediumAssets.pending.name),
-          new EmbedBuilder({
-            title: "⚠️ Escrow Automated Middleman Warning",
-            description:
-              "The bot will **NEVER** ask you to send funds to an address that is not listed above. If you are asked to send funds to an address that is not listed above, please ping a staff member immediately.",
-            color: EmbedColors.Error,
+                .setColor(EmbedColors.Loading)
+                .setThumbnail(mediumAssets.pending.name),
+              new EmbedBuilder({
+                title: "⚠️ Escrow Automated Middleman Warning",
+                description:
+                  "The bot will **NEVER** ask you to send funds to an address that is not listed above. If you are asked to send funds to an address that is not listed above, please ping a staff member immediately.",
+                color: EmbedColors.Error,
+              }),
+            ],
+            files: [mediumAssets.pending.attachment],
           }),
+          Effect.all([
+            clearInactivityTasks(channel),
+            scheduleInactivityTask(channel, LenientChannelInactivityThreshold),
+          ]),
         ],
-        files: [mediumAssets.pending.attachment],
-      })
+        { concurrency: "unbounded" }
+      )
     );
 
     const copyToClipboardMessages = yield* _(
